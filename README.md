@@ -30,11 +30,6 @@ Oblivion provides a complete suite of tools and frameworks for developing next-g
 - Deployment automation
 - Documentation generation
 
-## Installation
-
-```bash
-pip install oblivion-sdk
-```
 
 ## Quick Start
 

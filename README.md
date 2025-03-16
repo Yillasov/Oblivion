@@ -60,7 +60,4 @@ For technical support and questions about:
 - Deployment & Testing
 
 Please refer to our [documentation](docs/) or open an issue in our repository.
-=======
-# Oblivion
-A comprehensive Software Development Kit for the design, rapid prototyping, and manufacturing of advanced Unmanned Combat Aerial Vehicles (UCAVs) powered by advanced neuromorphic computing.
->>>>>>> 8e30284a8b7aff41c422fa289a78d09018b3d3f4
+

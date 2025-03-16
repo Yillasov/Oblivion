@@ -1,0 +1,28 @@
+{
+  "name": "basic_flight",
+  "description": "Basic flight simulation with altitude changes",
+  "duration": 30.0,
+  "time_scale": 1.0,
+  "config": {
+    "initial_altitude": 1000.0,
+    "initial_velocity": 100.0,
+    "waypoints": [
+      {
+        "time": 0.0,
+        "altitude": 1000.0
+      },
+      {
+        "time": 10.0,
+        "altitude": 1500.0
+      },
+      {
+        "time": 20.0,
+        "altitude": 1200.0
+      },
+      {
+        "time": 30.0,
+        "altitude": 1000.0
+      }
+    ]
+  }
+}

@@ -30,11 +30,6 @@ Oblivion provides a complete suite of tools and frameworks for developing next-g
 - Deployment automation
 - Documentation generation
 
-## Installation
-
-```bash
-pip install oblivion-sdk
-```
 
 ## Quick Start
 
@@ -58,4 +53,9 @@ For technical support and questions about:
 - Neuromorphic Integration
 - Deployment & Testing
 
+<<<<<<< HEAD
 Please refer to our [documentation](docs/) or open an issue in our repository.
+=======
+Please refer to our [documentation](docs/) or open an issue in our repository.
+
+>>>>>>> a6798600a0a0a3d172d47f273d1a26661ff70abb

@@ -12,6 +12,9 @@ setup(
         "numpy>=1.19.0",
         "pyyaml>=5.4.1",
         "typing-extensions>=4.0.0",
+        # Add dependencies for deployment tools
+        "argparse>=1.4.0",  # This is part of the standard library in Python 3.8+
+        "pathlib>=1.0.1",   # This is part of the standard library in Python 3.8+
     ],
     extras_require={
         "dev": [
@@ -23,6 +26,11 @@ setup(
         "docs": [
             "sphinx>=4.0.0",
             "sphinx-rtd-theme>=0.5.0",
+        ],
+    },
+    entry_points={
+        'console_scripts': [
+            'oblivion-deploy=src.tools.deployment.deploy:main',
         ],
     },
 )

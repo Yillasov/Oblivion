@@ -1,5 +1,5 @@
 import pytest
-from src.tools.api.gateway import APIGateway, SubsystemClient
+from src.tools.api.gateway import APIGateway
 
 def test_api_gateway_initialization():
     """Test API gateway initialization."""

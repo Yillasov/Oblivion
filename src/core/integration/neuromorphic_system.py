@@ -1,7 +1,7 @@
 """
-Simple System Integration Framework
+Neuromorphic System Integration Framework
 
-Provides a unified interface for integrating various neuromorphic components
+Provides a unified interface for integrating neuromorphic components
 and learning algorithms into a cohesive system.
 """
 
@@ -10,7 +10,6 @@ from typing import Dict, List, Tuple, Optional, Any, Callable
 import time
 
 from src.core.utils.logging_framework import get_logger
-# Import NeuromorphicInterface from a type-safe interface
 from typing import Protocol, runtime_checkable
 
 @runtime_checkable
@@ -24,19 +23,14 @@ logger = get_logger("neuromorphic_system")
 
 class NeuromorphicSystem:
     """
-    Simple integration framework for neuromorphic components.
+    Integration framework for neuromorphic components.
     
     Provides a unified interface for managing neuromorphic hardware,
     learning algorithms, and data flow between components.
     """
     
     def __init__(self, hardware_interface: Optional[NeuromorphicInterface] = None):
-        """
-        Initialize the neuromorphic system.
-        
-        Args:
-            hardware_interface: Interface to neuromorphic hardware (optional)
-        """
+        """Initialize the neuromorphic system."""
         self.hardware = hardware_interface
         self.components = {}
         self.connections = {}
@@ -44,20 +38,12 @@ class NeuromorphicSystem:
         self.data_buffers = {}
         self.running = False
         self.timestep = 0
+        self.neural_connections = {}
         
         logger.info("Initialized neuromorphic system integration framework")
     
     def add_component(self, name: str, component: Any) -> bool:
-        """
-        Add a component to the system.
-        
-        Args:
-            name: Unique identifier for the component
-            component: The component object
-            
-        Returns:
-            bool: True if successful, False if name already exists
-        """
+        """Add a component to the system."""
         if name in self.components:
             logger.warning(f"Component '{name}' already exists")
             return False
@@ -68,16 +54,7 @@ class NeuromorphicSystem:
         return True
     
     def add_learning_algorithm(self, name: str, algorithm: Any) -> bool:
-        """
-        Add a learning algorithm to the system.
-        
-        Args:
-            name: Unique identifier for the algorithm
-            algorithm: The learning algorithm object
-            
-        Returns:
-            bool: True if successful, False if name already exists
-        """
+        """Add a learning algorithm to the system."""
         if name in self.learning_algorithms:
             logger.warning(f"Learning algorithm '{name}' already exists")
             return False
@@ -89,24 +66,9 @@ class NeuromorphicSystem:
     def connect(self, source: str, target: str, 
                connection_type: str = "data", 
                transform: Optional[Callable] = None) -> bool:
-        """
-        Connect two components in the system.
-        
-        Args:
-            source: Name of source component
-            target: Name of target component
-            connection_type: Type of connection (e.g., "data", "control")
-            transform: Optional function to transform data during transfer
-            
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        if source not in self.components:
-            logger.error(f"Source component '{source}' not found")
-            return False
-        
-        if target not in self.components:
-            logger.error(f"Target component '{target}' not found")
+        """Connect two components in the system."""
+        if source not in self.components or target not in self.components:
+            logger.error(f"Connection failed: component not found")
             return False
         
         connection_id = f"{source}->{target}"
@@ -121,23 +83,17 @@ class NeuromorphicSystem:
         return True
     
     def initialize(self) -> bool:
-        """
-        Initialize the system and all components.
-        
-        Returns:
-            bool: True if successful, False otherwise
-        """
+        """Initialize the system and all components."""
         try:
             # Initialize hardware if available
             if self.hardware is not None:
                 self.hardware.initialize()
             
-            # Initialize all components
+            # Initialize components and reset learning algorithms
             for name, component in self.components.items():
                 if hasattr(component, 'initialize'):
                     component.initialize()
             
-            # Reset learning algorithms
             for name, algorithm in self.learning_algorithms.items():
                 if hasattr(algorithm, 'reset'):
                     algorithm.reset()
@@ -151,138 +107,124 @@ class NeuromorphicSystem:
             return False
     
     def process_data(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Process data through the system for one timestep.
-        
-        Args:
-            input_data: Dictionary mapping component names to input data
-            
-        Returns:
-            Dict[str, Any]: Output data from all components
-        """
+        """Process data through the system for one timestep."""
         # Store input data in buffers
         for name, data in input_data.items():
             if name in self.data_buffers:
                 self.data_buffers[name]["input"] = data
-            else:
-                logger.warning(f"Input provided for unknown component: {name}")
         
         # Process components in dependency order
-        processed_components = set()
+        processed = set()
         output_data = {}
         
-        while len(processed_components) < len(self.components):
+        # Simple topological sort and processing
+        while len(processed) < len(self.components):
             progress_made = False
             
             for name, component in self.components.items():
-                if name in processed_components:
+                if name in processed:
                     continue
                 
-                # Check if all dependencies are processed
-                dependencies_met = True
-                for conn_id, conn in self.connections.items():
-                    if conn["target"] == name and conn["source"] not in processed_components:
-                        dependencies_met = False
-                        break
+                # Check if dependencies are met
+                deps_met = all(
+                    conn["source"] in processed 
+                    for conn_id, conn in self.connections.items() 
+                    if conn["target"] == name
+                )
                 
-                if dependencies_met:
-                    # Gather inputs from connected components
-                    component_inputs = {}
-                    for conn_id, conn in self.connections.items():
-                        if conn["target"] == name:
-                            source_name = conn["source"]
-                            if source_name in self.data_buffers and "output" in self.data_buffers[source_name]:
-                                data = self.data_buffers[source_name]["output"]
-                                
-                                # Apply transform if specified
-                                if conn["transform"] is not None:
-                                    data = conn["transform"](data)
-                                
-                                component_inputs[source_name] = data
-                    
-                    # Add direct inputs
-                    if name in self.data_buffers and "input" in self.data_buffers[name]:
-                        component_inputs["direct"] = self.data_buffers[name]["input"]
-                    
-                    # Process component
-                    if hasattr(component, 'process'):
-                        try:
+                if deps_met:
+                    # Gather inputs and process component
+                    try:
+                        component_inputs = self._gather_inputs(name, processed)
+                        if hasattr(component, 'process'):
                             result = component.process(component_inputs)
                             self.data_buffers[name]["output"] = result
                             output_data[name] = result
-                        except Exception as e:
-                            logger.error(f"Error processing component '{name}': {str(e)}")
-                            # Provide empty result to avoid breaking the pipeline
-                            self.data_buffers[name]["output"] = {}
-                            output_data[name] = {}
+                    except Exception as e:
+                        logger.error(f"Error processing component '{name}': {str(e)}")
+                        self.data_buffers[name]["output"] = {}
+                        output_data[name] = {}
                     
-                    processed_components.add(name)
+                    processed.add(name)
                     progress_made = True
             
-            # If no progress was made in this iteration, we have a circular dependency
-            if not progress_made and len(processed_components) < len(self.components):
-                unprocessed = set(self.components.keys()) - processed_components
-                logger.error(f"Circular dependency detected. Unprocessed components: {unprocessed}")
+            # Check for circular dependencies
+            if not progress_made and len(processed) < len(self.components):
+                unprocessed = set(self.components.keys()) - processed
+                logger.error(f"Circular dependency detected: {unprocessed}")
                 break
         
         # Update learning algorithms
-        for name, algorithm in self.learning_algorithms.items():
-            try:
-                if hasattr(algorithm, 'update_weights'):
-                    # Get relevant component outputs for this algorithm
-                    algorithm_data = {comp_name: self.data_buffers[comp_name].get("output", None) 
-                                    for comp_name in self.components 
-                                    if comp_name in self.data_buffers}
-                    
-                    # Update algorithm state
-                    if hasattr(algorithm, 'record_activity'):
-                        for comp_name, data in algorithm_data.items():
-                            if data is not None and hasattr(data, 'items'):
-                                for neuron_id, activity in data.items():
-                                    algorithm.record_activity(neuron_id, activity)
-                    
-                    # If the algorithm has connections to update, call update_weights
-                    # This assumes connections are stored elsewhere and passed to the algorithm
-                    if hasattr(self, 'neural_connections'):
-                        updated_connections = algorithm.update_weights(self.neural_connections, self.timestep)
-                        self.neural_connections = updated_connections
-            except Exception as e:
-                logger.error(f"Error updating learning algorithm '{name}': {str(e)}")
+        self._update_learning_algorithms()
         
         self.timestep += 1
         return output_data
     
-    def run(self, steps: int, input_provider: Callable[[int], Dict[str, Any]]) -> Dict[str, List[Any]]:
-        """
-        Run the system for multiple timesteps.
+    def _gather_inputs(self, target_name: str, processed_components: set) -> Dict[str, Any]:
+        """Gather inputs for a component from its connections."""
+        inputs = {}
         
-        Args:
-            steps: Number of timesteps to run
-            input_provider: Function that returns input data for each timestep
-            
-        Returns:
-            Dict[str, List[Any]]: Collected outputs from all components
-        """
+        # Get inputs from connections
+        for conn_id, conn in self.connections.items():
+            if conn["target"] == target_name and conn["source"] in processed_components:
+                source_name = conn["source"]
+                if "output" in self.data_buffers.get(source_name, {}):
+                    data = self.data_buffers[source_name]["output"]
+                    
+                    # Apply transform if specified
+                    if conn["transform"] is not None:
+                        data = conn["transform"](data)
+                    
+                    inputs[source_name] = data
+        
+        # Add direct inputs
+        if "input" in self.data_buffers.get(target_name, {}):
+            inputs["direct"] = self.data_buffers[target_name]["input"]
+        
+        return inputs
+    
+    def _update_learning_algorithms(self):
+        """Update all learning algorithms with current system state."""
+        for name, algorithm in self.learning_algorithms.items():
+            try:
+                if hasattr(algorithm, 'update_weights'):
+                    # Get component outputs for this algorithm
+                    algorithm_data = {
+                        comp_name: self.data_buffers[comp_name].get("output", {})
+                        for comp_name in self.components
+                        if comp_name in self.data_buffers
+                    }
+                    
+                    # Record activity if supported
+                    if hasattr(algorithm, 'record_activity'):
+                        for comp_name, data in algorithm_data.items():
+                            if hasattr(data, 'items'):
+                                for neuron_id, activity in data.items():
+                                    algorithm.record_activity(neuron_id, activity)
+                    
+                    # Update weights if connections exist
+                    if self.neural_connections:
+                        self.neural_connections = algorithm.update_weights(
+                            self.neural_connections, self.timestep
+                        )
+            except Exception as e:
+                logger.error(f"Error updating algorithm '{name}': {str(e)}")
+    
+    def run(self, steps: int, input_provider: Callable[[int], Dict[str, Any]]) -> Dict[str, List[Any]]:
+        """Run the system for multiple timesteps."""
         self.running = True
         collected_outputs = {name: [] for name in self.components}
         
         try:
             for step in range(steps):
                 if not self.running:
-                    logger.info("System execution stopped")
                     break
                 
-                # Get input for this timestep
-                input_data = input_provider(step)
-                
-                # Process data
-                outputs = self.process_data(input_data)
+                outputs = self.process_data(input_provider(step))
                 
                 # Collect outputs
                 for name, output in outputs.items():
                     collected_outputs[name].append(output)
-                
-                logger.debug(f"Completed timestep {step+1}/{steps}")
             
             logger.info(f"System execution completed ({steps} steps)")
             return collected_outputs
@@ -300,11 +242,9 @@ class NeuromorphicSystem:
     def cleanup(self):
         """Clean up resources used by the system."""
         try:
-            # Clean up hardware resources
             if self.hardware is not None:
                 self.hardware.cleanup()
             
-            # Clean up components
             for name, component in self.components.items():
                 if hasattr(component, 'cleanup'):
                     component.cleanup()
@@ -313,6 +253,11 @@ class NeuromorphicSystem:
             
         except Exception as e:
             logger.error(f"Error during system cleanup: {str(e)}")
+    
+    def set_neural_connections(self, connections: Dict[Tuple[int, int], float]):
+        """Set neural connections for learning algorithms to update."""
+        self.neural_connections = connections
+        logger.info(f"Set {len(connections)} neural connections for learning")
 
 
 # Example usage
@@ -374,14 +319,3 @@ def create_example_system():
     system.initialize()
     
     return system
-
-
-    def set_neural_connections(self, connections: Dict[Tuple[int, int], float]):
-        """
-        Set neural connections for learning algorithms to update.
-        
-        Args:
-            connections: Dictionary mapping (pre_id, post_id) to weight
-        """
-        self.neural_connections = connections
-        logger.info(f"Set {len(connections)} neural connections for learning")

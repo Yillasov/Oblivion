@@ -357,3 +357,26 @@ class TrueNorthProcessor(NeuromorphicProcessor):
             'synapses_allocated': len(self._synapses),
             'firmware_version': '2.0.1'
         }
+    
+    def reset_state(self) -> bool:
+        """
+        Reset the hardware state without full reinitialization.
+        
+        Returns:
+            bool: True if reset was successful, False otherwise
+        """
+        try:
+            if not self._initialized:
+                logger.warning("Cannot reset state: TrueNorth processor not initialized")
+                return False
+                
+            # In a real implementation, this would reset the state on the TrueNorth hardware
+            # For simulation purposes, we'll just clear the spike data
+            logger.info("Resetting TrueNorth processor state")
+            self._spike_inputs = {}
+            self._spike_outputs = {}
+            
+            return True
+        except Exception as e:
+            logger.error(f"Failed to reset TrueNorth processor state: {str(e)}")
+            return False

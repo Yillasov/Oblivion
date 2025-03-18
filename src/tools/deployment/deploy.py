@@ -321,12 +321,15 @@ class DeploymentManager:
             }
 
     def create_package(self, hardware_type: str, config_name: str,
-                      algorithm_paths: List[str]) -> str:
+                  algorithm_paths: List[str]) -> str:
         """Create a streamlined deployment package."""
         # Load hardware configuration
         config = self.config_manager.load_config(hardware_type, config_name)
         if not config:
             raise ValueError(f"Configuration '{config_name}' for {hardware_type} not found")
+        
+        # Validate hardware requirements
+        self._validate_hardware_requirements(hardware_type, config)
         
         # Create package directory
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -425,21 +428,158 @@ echo "Deployment completed successfully"
         with open(os.path.join(package_dir, "deploy.sh"), 'w') as f:
             f.write(script_content)
     
+    def _validate_hardware_requirements(self, hardware_type: str, config: Dict[str, Any]) -> None:
+        """Validate hardware-specific requirements."""
+        requirements = {
+            "loihi": {"chip_id", "board_id", "neuron_type"},
+            "spinnaker": {"ip_address", "n_chips", "version"},
+            "truenorth": {"core_count", "chip_id", "board_address"}
+        }
+        
+        # Check for required fields
+        if hardware_type in requirements:
+            missing = [field for field in requirements[hardware_type] 
+                      if field not in config and field not in config.get("hardware", {})]
+            if missing:
+                logger.warning(f"Missing recommended fields for {hardware_type}: {', '.join(missing)}")
+        
+        # Add hardware-specific validation
+        if hardware_type == "loihi" and "neuron_type" in config:
+            if config["neuron_type"] not in ["LIF", "ALIF", "Compartment"]:
+                logger.warning(f"Unsupported neuron type for Loihi: {config['neuron_type']}")
+        
+        # Add hardware capabilities to manifest
+        config["_capabilities"] = self._get_hardware_capabilities(hardware_type)
+    
+        # Enhance deploy method to handle hardware-specific deployment
+        def deploy(self, package_path: str, hardware_address: Optional[str] = None) -> bool:
+            """Deploy package to hardware with improved error handling."""
+            if not os.path.exists(package_path):
+                logger.error(f"Deployment package not found: {package_path}")
+                return False
+            
+            # Extract package to get hardware type
+            extract_dir = os.path.join(self.build_dir, "tmp", Path(package_path).stem)
+            os.makedirs(os.path.dirname(extract_dir), exist_ok=True)
+            
+            try:
+                # Extract package
+                shutil.unpack_archive(package_path, extract_dir)
+                
+                # Get hardware type from manifest
+                manifest_path = os.path.join(extract_dir, "manifest.json")
+                with open(manifest_path, 'r') as f:
+                    manifest = json.load(f)
+                
+                hardware_type = manifest.get("hardware_type")
+                
+                # Auto-detect hardware if no address provided
+                if not hardware_address:
+                    detected = self.detect_hardware()
+                    if detected:
+                        detected_type, hw_info = detected
+                        # Verify hardware type matches
+                        if detected_type != hardware_type:
+                            logger.warning(f"Package for {hardware_type} but detected {detected_type}")
+                            if not self._confirm_deployment_mismatch():
+                                return False
+                        hardware_address = hw_info.get("address", None)
+                        logger.info(f"Auto-detected {detected_type} hardware at {hardware_address}")
+                
+                # Run hardware-specific pre-deployment checks
+                if not self._run_hardware_checks(hardware_type, extract_dir):
+                    logger.error("Hardware pre-deployment checks failed")
+                    return False
+                
+                # Run deployment script
+                cmd = f"cd {extract_dir} && ./deploy.sh {hardware_address or ''}"
+                result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+                
+                if result.returncode != 0:
+                    logger.error(f"Deployment failed: {result.stderr}")
+                    return False
+                
+                logger.info("Deployment successful")
+                return True
+                
+            except Exception as e:
+                logger.error(f"Deployment error: {str(e)}")
+                return False
+            finally:
+                # Clean up
+                if os.path.exists(extract_dir):
+                    shutil.rmtree(extract_dir)
+        
+        def _confirm_deployment_mismatch(self) -> bool:
+            """Confirm deployment when hardware type doesn't match."""
+            if sys.stdin.isatty() and not os.environ.get("OBLIVION_NON_INTERACTIVE"):
+                response = input("Hardware type mismatch. Continue anyway? (y/N): ")
+                return response.lower() == 'y'
+            return False
+    
+        def _run_hardware_checks(self, hardware_type: str, package_dir: str) -> bool:
+            """Run hardware-specific pre-deployment checks."""
+            # Load hardware config
+            config_path = os.path.join(package_dir, "config", "hardware_config.json")
+            with open(config_path, 'r') as f:
+                config = json.load(f)
+            
+            # Hardware-specific checks
+            if hardware_type == "loihi":
+                return self._check_loihi_requirements(config)
+            elif hardware_type == "spinnaker":
+                return self._check_spinnaker_requirements(config)
+            elif hardware_type == "truenorth":
+                return self._check_truenorth_requirements(config)
+            return True
+    
+        def _check_loihi_requirements(self, config: Dict[str, Any]) -> bool:
+            """Check Loihi-specific requirements."""
+            # Simple check for demonstration
+            return True
+    
+        def _check_spinnaker_requirements(self, config: Dict[str, Any]) -> bool:
+            """Check SpiNNaker-specific requirements."""
+            # Simple check for demonstration
+            return True
+    
+        def _check_truenorth_requirements(self, config: Dict[str, Any]) -> bool:
+            """Check TrueNorth-specific requirements."""
+            # Simple check for demonstration
+            return True
+
+    def _get_hardware_capabilities(self, hardware_type: str) -> Dict[str, Any]:
+        """Get hardware-specific capabilities."""
+        capabilities = {
+            "loihi": {
+                "max_neurons": 128000,
+                "max_synapses": 128000000,
+                "supports_learning": True,
+                "precision": "8-bit"
+            },
+            "spinnaker": {
+                "max_neurons": 16000000,
+                "max_synapses": 8000000000,
+                "supports_learning": True,
+                "precision": "16-bit"
+            },
+            "truenorth": {
+                "max_neurons": 1000000,
+                "max_synapses": 256000000,
+                "supports_learning": False,
+                "precision": "1-bit"
+            }
+        }
+        return capabilities.get(hardware_type, {})
+
+    # Enhance deploy method to handle hardware-specific deployment
     def deploy(self, package_path: str, hardware_address: Optional[str] = None) -> bool:
         """Deploy package to hardware with improved error handling."""
         if not os.path.exists(package_path):
             logger.error(f"Deployment package not found: {package_path}")
             return False
         
-        # Auto-detect hardware if no address provided
-        if not hardware_address:
-            detected = self.detect_hardware()
-            if detected:
-                hardware_type, hw_info = detected
-                hardware_address = hw_info.get("address", None)
-                logger.info(f"Auto-detected {hardware_type} hardware at {hardware_address}")
-        
-        # Extract package
+        # Extract package to get hardware type
         extract_dir = os.path.join(self.build_dir, "tmp", Path(package_path).stem)
         os.makedirs(os.path.dirname(extract_dir), exist_ok=True)
         

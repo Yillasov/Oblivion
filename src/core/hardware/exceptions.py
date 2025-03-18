@@ -12,6 +12,17 @@ class HardwareInitializationError(NeuromorphicHardwareError):
     pass
 
 
+# Add the new exception class
+class HardwareSwitchingError(NeuromorphicHardwareError):
+    """Exception raised when hardware switching fails."""
+    pass
+
+
+class HardwareCommunicationError(NeuromorphicHardwareError):
+    """Exception raised when communication with hardware fails."""
+    pass
+
+
 class HardwareAllocationError(NeuromorphicHardwareError):
     """Exception raised when resource allocation on hardware fails."""
     pass
@@ -22,11 +33,11 @@ class HardwareSimulationError(NeuromorphicHardwareError):
     pass
 
 
-class HardwareCommunicationError(NeuromorphicHardwareError):
-    """Exception raised when communication with hardware fails."""
+class UnsupportedFeatureError(NeuromorphicHardwareError):
+    """Exception raised when attempting to use an unsupported hardware feature."""
     pass
 
 
-class UnsupportedFeatureError(NeuromorphicHardwareError):
-    """Exception raised when attempting to use an unsupported hardware feature."""
+class ResourceSharingError(Exception):
+    """Exception raised for errors in hardware resource sharing."""
     pass

@@ -33,7 +33,7 @@ class SimulationConfig:
     time_step: float = 0.1   # Simulation time step in seconds
     record_interval: float = 1.0  # Data recording interval
     environment_config: Dict[str, Any] = dict()
-    failure_scenarios: List[Dict[str, Any]] = None
+    failure_scenarios: List[Dict[str, Any]] = []
     visualization_enabled: bool = False
 
 

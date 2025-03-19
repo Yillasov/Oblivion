@@ -284,3 +284,177 @@ class ActiveCamouflageSystem(NeuromorphicStealth):
             if self.status["cooldown_remaining"] <= 0:
                 self.status["cooldown_remaining"] = 0.0
                 self.status["remaining_operation_time"] = self.config.operational_duration_minutes
+
+    def analyze_visual_environment(self, image_data: np.ndarray) -> Dict[str, Any]:
+        """
+        Analyze visual environment to adapt camouflage pattern.
+        
+        Args:
+            image_data: RGB image data of the environment
+            
+        Returns:
+            Analysis results
+        """
+        if not self.initialized or not self.status["active"]:
+            return {"success": False, "message": "System not active"}
+            
+        # Initialize visual signature matcher if not already done
+        if not hasattr(self, 'visual_matcher'):
+            from src.stealth.camouflage.visual_signature import VisualSignatureMatcher, MatchingAlgorithm
+            self.visual_matcher = VisualSignatureMatcher(
+                matching_algorithm=MatchingAlgorithm.ADAPTIVE_BLENDING
+            )
+            
+        # Analyze environment
+        signature = self.visual_matcher.analyze_environment(image_data)
+        
+        # Store signature for current environment if one is set
+        if self.status["current_environment"] and self.status["current_environment"] != "auto":
+            self.visual_matcher.store_reference_signature(
+                self.status["current_environment"], 
+                signature
+            )
+            
+        # Update adaptation progress based on signature analysis
+        # More complex environments take longer to adapt to
+        complexity_factor = 1.0 - (signature.pattern_complexity * 0.5)
+        self.status["adaptation_progress"] = min(
+            self.status["adaptation_progress"] + (0.1 * complexity_factor),
+            1.0
+        )
+        
+        return {
+            "success": True,
+            "signature": {
+                "dominant_colors": signature.dominant_colors,
+                "pattern_complexity": signature.pattern_complexity,
+                "edge_density": signature.edge_density,
+                "light_levels": signature.light_levels,
+                "contrast_ratio": signature.contrast_ratio
+            },
+            "adaptation_progress": self.status["adaptation_progress"]
+        }
+        
+    def generate_camouflage_pattern(self, 
+                                   environment_type: Optional[str] = None, 
+                                   resolution: Tuple[int, int] = (640, 480)) -> np.ndarray:
+        """
+        Generate camouflage pattern based on current environment.
+        
+        Args:
+            environment_type: Override environment type
+            resolution: Output resolution (width, height)
+            
+        Returns:
+            RGB image data of generated camouflage pattern
+        """
+        if not self.initialized:
+            return np.zeros((resolution[1], resolution[0], 3), dtype=np.uint8)
+            
+        # Initialize visual signature matcher if not already done
+        if not hasattr(self, 'visual_matcher'):
+            from src.stealth.camouflage.visual_signature import VisualSignatureMatcher, MatchingAlgorithm
+            self.visual_matcher = VisualSignatureMatcher(
+                resolution=resolution,
+                matching_algorithm=MatchingAlgorithm.ADAPTIVE_BLENDING
+            )
+            
+        # Use provided environment type or current environment
+        env_type = environment_type or self.status["current_environment"] or "urban"
+        
+        # Get reference signature if available
+        signature = None
+        if env_type != "auto":
+            signature = self.visual_matcher.get_reference_signature(env_type)
+            
+        # Generate pattern
+        pattern = self.visual_matcher.generate_camouflage_pattern(
+            signature=signature,
+            environment_type=env_type
+        )
+        
+        # Store current pattern
+        self.status["current_pattern"] = pattern
+        
+        return pattern
+        
+    def blend_to_new_environment(self, 
+                               new_environment: str, 
+                               blend_time: float = 2.0) -> bool:
+        """
+        Blend camouflage pattern to a new environment.
+        
+        Args:
+            new_environment: New environment type
+            blend_time: Time to blend in seconds
+            
+        Returns:
+            Success status
+        """
+        if not self.initialized or not self.status["active"]:
+            return False
+            
+        # Initialize visual signature matcher if not already done
+        if not hasattr(self, 'visual_matcher'):
+            from src.stealth.camouflage.visual_signature import VisualSignatureMatcher, MatchingAlgorithm
+            self.visual_matcher = VisualSignatureMatcher(
+                matching_algorithm=MatchingAlgorithm.ADAPTIVE_BLENDING
+            )
+            
+        # Store current pattern and environment
+        old_environment = self.status["current_environment"]
+        
+        # Generate pattern for new environment
+        new_pattern = self.generate_camouflage_pattern(environment_type=new_environment)
+        
+        # Update environment
+        self.status["current_environment"] = new_environment
+        
+        # Reset adaptation progress
+        self.status["adaptation_progress"] = 0.3
+        
+        # In a real system, we would gradually blend between patterns
+        # Here we just update the current pattern
+        self.status["current_pattern"] = new_pattern
+        
+        return True
+        
+    def calculate_visual_signature_match(self, 
+                                       environment_image: np.ndarray) -> float:
+        """
+        Calculate how well the current camouflage matches the environment.
+        
+        Args:
+            environment_image: RGB image of the environment
+            
+        Returns:
+            Match score (0.0-1.0)
+        """
+        if not self.initialized or not self.status["active"]:
+            return 0.0
+            
+        # Initialize visual signature matcher if not already done
+        if not hasattr(self, 'visual_matcher'):
+            from src.stealth.camouflage.visual_signature import VisualSignatureMatcher, MatchingAlgorithm
+            self.visual_matcher = VisualSignatureMatcher(
+                matching_algorithm=MatchingAlgorithm.ADAPTIVE_BLENDING
+            )
+            
+        # Analyze environment
+        env_signature = self.visual_matcher.analyze_environment(environment_image)
+        
+        # Get current pattern signature
+        if self.status["current_pattern"] is not None:
+            pattern_signature = self.visual_matcher.analyze_environment(self.status["current_pattern"])
+            
+            # Calculate similarity
+            similarity = self.visual_matcher.calculate_signature_similarity(
+                env_signature, pattern_signature
+            )
+            
+            # Apply power level and adaptation progress
+            match_score = similarity * self.status["power_level"] * self.status["adaptation_progress"]
+            
+            return match_score
+        else:
+            return 0.0

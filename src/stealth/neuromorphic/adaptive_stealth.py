@@ -104,7 +104,7 @@ class AdaptiveStealthSystem(NeuromorphicStealth):
     def optimize_stealth_parameters(self, 
                                   threat_data: Dict[str, Any],
                                   environmental_conditions: Dict[str, float],
-                                  energy_constraints: Dict[str, float] = None) -> Dict[str, Any]:
+                                  energy_constraints: Optional[Dict[str, float]] = None) -> Dict[str, Any]:
         """
         Real-time optimization of stealth parameters based on current threats.
         
@@ -154,7 +154,7 @@ class AdaptiveStealthSystem(NeuromorphicStealth):
     def _optimize_power_distribution(self, 
                                    threat_levels: Dict[SignatureType, float],
                                    current_power: float,
-                                   energy_constraints: Dict[str, float] = None) -> Dict[str, Any]:
+                                   energy_constraints: Optional[Dict[str, float]] = None) -> Dict[str, Any]:
         """
         Optimize power distribution based on threat levels.
         

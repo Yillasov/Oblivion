@@ -8,6 +8,7 @@ from dataclasses import dataclass
 
 from src.stealth.base.interfaces import StealthInterface, StealthSpecs, StealthType, NeuromorphicStealth
 from src.stealth.base.config import StealthMaterialConfig, StealthSystemConfig
+from src.stealth.materials.ram.material_database import RAMMaterialDatabase
 
 
 @dataclass
@@ -36,7 +37,7 @@ class RAMSystem(NeuromorphicStealth):
         """
         super().__init__(hardware_interface)
         self.config = config
-        self.materials_library = self._initialize_materials_library()
+        self.material_database = RAMMaterialDatabase()
         self.active_material = None
         
         # Set up specifications
@@ -56,82 +57,35 @@ class RAMSystem(NeuromorphicStealth):
         # Select initial material based on config
         if config.material_config:
             self.select_material(config.material_config.material_type)
-    
+            
     def _initialize_materials_library(self) -> Dict[str, RAMMaterial]:
         """Initialize the library of available RAM materials."""
-        return {
-            "ferrite_composite": RAMMaterial(
-                name="Ferrite Composite",
-                density=2200.0,
-                thickness=3.0,
-                frequency_response={
-                    "1.0": 10.0,  # 1 GHz: 10 dB attenuation
-                    "5.0": 15.0,  # 5 GHz: 15 dB attenuation
-                    "10.0": 12.0,  # 10 GHz: 12 dB attenuation
-                    "15.0": 8.0,   # 15 GHz: 8 dB attenuation
-                },
-                temperature_range=(-40.0, 120.0),
-                weather_resistance=0.7,
-                durability=0.8,
-                cost_factor=1.0
-            ),
-            "advanced_composite": RAMMaterial(
-                name="Advanced Composite",
-                density=1800.0,
-                thickness=5.0,
-                frequency_response={
-                    "1.0": 15.0,   # 1 GHz: 15 dB attenuation
-                    "5.0": 22.0,   # 5 GHz: 22 dB attenuation
-                    "10.0": 20.0,  # 10 GHz: 20 dB attenuation
-                    "15.0": 18.0,  # 15 GHz: 18 dB attenuation
-                    "20.0": 15.0,  # 20 GHz: 15 dB attenuation
-                },
-                temperature_range=(-60.0, 150.0),
-                weather_resistance=0.9,
-                durability=0.85,
-                cost_factor=2.5
-            ),
-            "carbon_nanotube": RAMMaterial(
-                name="Carbon Nanotube Composite",
-                density=1500.0,
-                thickness=2.0,
-                frequency_response={
-                    "1.0": 18.0,   # 1 GHz: 18 dB attenuation
-                    "5.0": 25.0,   # 5 GHz: 25 dB attenuation
-                    "10.0": 30.0,  # 10 GHz: 30 dB attenuation
-                    "15.0": 28.0,  # 15 GHz: 28 dB attenuation
-                    "20.0": 22.0,  # 20 GHz: 22 dB attenuation
-                },
-                temperature_range=(-80.0, 200.0),
-                weather_resistance=0.95,
-                durability=0.9,
-                cost_factor=5.0
-            )
-        }
-    
+        # Now we use the material database instead of hardcoding materials
+        return self.material_database.materials
+        
     def _calculate_base_rcs(self) -> float:
-        """Calculate base radar cross-section based on configuration."""
-        if not self.config.material_config:
+        """Calculate base radar cross-section reduction."""
+        if not self.active_material:
             return 1.0
             
-        # Calculate RCS reduction based on material and coverage
-        base_reduction = 0.0
-        if self.config.signature_config:
-            base_reduction = self.config.signature_config.radar_cross_section_reduction / 100.0
-            
-        # Adjust for coverage
-        coverage = self.config.material_config.coverage_percentage / 100.0
+        # Calculate average attenuation across frequencies
+        attenuations = list(self.active_material.frequency_response.values())
+        avg_attenuation = sum(attenuations) / len(attenuations) if attenuations else 0
         
-        # Final RCS (lower is better)
-        return 1.0 - (base_reduction * coverage)
-    
-    def _get_material_composition(self) -> Dict[str, float]:
-        """Get material composition percentages."""
-        if not self.config.material_config:
-            return {"unknown": 100.0}
+        # Convert dB to linear scale (0-1 where 0 is perfect absorption)
+        return 10 ** (-avg_attenuation / 20)
+        
+    def _get_material_composition(self) -> Dict[str, Any]:
+        """Get material composition for specifications."""
+        if not self.active_material:
+            return {}
             
-        return {self.config.material_config.material_type: 100.0}
-    
+        return {
+            "material": self.active_material.name,
+            "thickness_mm": self.active_material.thickness,
+            "density_kg_m3": self.active_material.density
+        }
+        
     def select_material(self, material_name: str) -> bool:
         """
         Select a specific RAM material.
@@ -142,89 +96,107 @@ class RAMSystem(NeuromorphicStealth):
         Returns:
             Success status
         """
-        if material_name in self.materials_library:
-            self.active_material = self.materials_library[material_name]
+        material = self.material_database.get_material(material_name)
+        if material:
+            self.active_material = material
             return True
         return False
-    
-    def initialize(self) -> bool:
-        """Initialize the RAM system."""
-        self.initialized = True
-        self.status["active"] = True
-        self.status["mode"] = "active"  # RAM is always active once installed
-        return True
-    
-    def get_specifications(self) -> StealthSpecs:
-        """Get the physical specifications of the stealth system."""
-        return self.specs
-    
-    def calculate_effectiveness(self, 
-                              threat_data: Dict[str, Any],
-                              environmental_conditions: Dict[str, float]) -> Dict[str, float]:
+        
+    def get_available_materials(self) -> List[str]:
         """
-        Calculate RAM effectiveness against specific threats under given conditions.
+        Get list of available RAM materials.
+        
+        Returns:
+            List of material IDs
+        """
+        return self.material_database.list_materials()
+        
+    def get_material_properties(self, material_id: str) -> Dict[str, Any]:
+        """
+        Get properties of a specific material.
         
         Args:
-            threat_data: Information about the threat (radar type, frequency, etc.)
-            environmental_conditions: Environmental conditions (temperature, humidity, etc.)
+            material_id: Material identifier
+            
+        Returns:
+            Dictionary of material properties
+        """
+        return self.material_database.get_material_properties(material_id)
+        
+    def find_optimal_material(self, 
+                            threat_frequency: float,
+                            environmental_conditions: Dict[str, float]) -> str:
+        """
+        Find the optimal material for given threat and conditions.
+        
+        Args:
+            threat_frequency: Threat radar frequency in GHz
+            environmental_conditions: Environmental conditions
+            
+        Returns:
+            ID of the optimal material
+        """
+        return self.material_database.get_optimal_material(
+            threat_frequency, environmental_conditions)
+            
+    def calculate_effectiveness(self, 
+                              threat_data: Dict[str, Any],
+                              environmental_conditions: Dict[str, float]) -> Dict[str, Any]:
+        """
+        Calculate stealth effectiveness against specific threats.
+        
+        Args:
+            threat_data: Threat data
+            environmental_conditions: Environmental conditions
             
         Returns:
             Dictionary of effectiveness metrics
         """
-        # Extract threat information
-        radar_frequency = threat_data.get("frequency", 10.0)  # Default to 10 GHz
-        radar_power = threat_data.get("power", 1000.0)  # Default to 1000W
-        
-        # Extract environmental conditions
-        temperature = environmental_conditions.get("temperature", 20.0)  # °C
-        humidity = environmental_conditions.get("humidity", 50.0)  # %
-        precipitation = environmental_conditions.get("precipitation", 0.0)  # mm/h
-        
-        # Base effectiveness from material properties
         if not self.active_material:
-            return {"rcs_reduction": 0.0, "detection_probability": 1.0}
-        
-        # Get attenuation for the closest frequency
-        frequency_str = str(float(int(radar_frequency)))
-        attenuation = 0.0
-        
-        # Find closest frequency in material specs
-        available_freqs = [float(f) for f in self.active_material.frequency_response.keys()]
-        closest_freq = min(available_freqs, key=lambda x: abs(x - radar_frequency))
-        attenuation = self.active_material.frequency_response[str(closest_freq)]
-        
-        # Adjust for environmental factors
-        if temperature < self.active_material.temperature_range[0] or temperature > self.active_material.temperature_range[1]:
-            # Outside temperature range reduces effectiveness
-            temp_factor = 0.7
-        else:
-            temp_factor = 1.0
+            return {"radar_reduction": 0.0}
             
-        # Precipitation reduces effectiveness
-        if precipitation > 0:
-            precip_factor = 1.0 - (0.2 * min(precipitation / 10.0, 1.0))
+        # Extract threat frequency
+        threat_frequency = threat_data.get("radar_frequency_ghz", 10.0)
+        
+        # Find closest frequency in the response data
+        closest_freq = min(self.active_material.frequency_response.keys(), 
+                          key=lambda x: abs(float(x) - threat_frequency))
+        
+        # Get attenuation at that frequency
+        attenuation_db = self.active_material.frequency_response.get(closest_freq, 0.0)
+        
+        # Apply environmental factors
+        temperature = environmental_conditions.get("temperature", 20.0)
+        humidity = environmental_conditions.get("humidity", 50.0)
+        
+        # Check if temperature is within operating range
+        temp_range = self.active_material.temperature_range
+        if temperature < temp_range[0] or temperature > temp_range[1]:
+            temperature_factor = 0.7  # Reduced effectiveness outside operating range
         else:
-            precip_factor = 1.0
+            # Calculate how optimal the temperature is
+            optimal_temp = (temp_range[0] + temp_range[1]) / 2
+            temp_deviation = abs(temperature - optimal_temp) / (temp_range[1] - temp_range[0])
+            temperature_factor = 1.0 - (temp_deviation * 0.3)  # At most 30% reduction
+            
+        # Apply humidity factor
+        humidity_factor = 1.0
+        if humidity > 80.0:
+            humidity_factor = self.active_material.weather_resistance
             
         # Calculate final effectiveness
-        effectiveness = attenuation * temp_factor * precip_factor
+        modified_attenuation = attenuation_db * temperature_factor * humidity_factor
         
-        # Convert to RCS reduction (0-1 scale, lower is better)
-        rcs_reduction = min(effectiveness / 30.0, 0.95)  # Cap at 95% reduction
-        
-        # Calculate detection probability - Fix for None material_config
-        coverage_percentage = 100.0  # Default value
-        if self.config.material_config is not None:
-            coverage_percentage = self.config.material_config.coverage_percentage
-        
-        detection_probability = 1.0 - (rcs_reduction * coverage_percentage / 100.0)
+        # Convert dB to linear scale (0-1 where 0 is perfect absorption)
+        radar_reduction = 1.0 - (10 ** (-modified_attenuation / 20))
         
         return {
-            "rcs_reduction": rcs_reduction,
-            "detection_probability": detection_probability,
-            "effective_attenuation_db": effectiveness
+            "radar_reduction": radar_reduction,
+            "temperature_factor": temperature_factor,
+            "humidity_factor": humidity_factor,
+            "attenuation_db": modified_attenuation
         }
-    
+        
     def activate(self, activation_params: Dict[str, Any] = {}) -> bool:
         """
         Activate the RAM system (passive, always active).
@@ -237,32 +209,37 @@ class RAMSystem(NeuromorphicStealth):
         """
         self.status["active"] = True
         return True
-    
+        
     def deactivate(self) -> bool:
         """
-        Deactivate the RAM system (not applicable, always active).
+        Deactivate the RAM system (passive, always active).
         
         Returns:
-            Always False for RAM systems
+            Always True for RAM systems
         """
-        # RAM systems cannot be deactivated once installed
-        return False
-    
+        # RAM is passive, so it's always "active" in a sense
+        self.status["active"] = True
+        return True
+        
     def get_status(self) -> Dict[str, Any]:
-        """Get the current status of the stealth system."""
-        return self.status
-    
-    def adjust_parameters(self, parameters: Dict[str, Any]) -> bool:
         """
-        Adjust operational parameters of the stealth system.
+        Get system status.
         
-        Args:
-            parameters: New parameters to set
-            
         Returns:
-            Success status
+            Dictionary of system status
         """
-        # RAM systems have limited adjustable parameters
-        if "material" in parameters:
-            return self.select_material(parameters["material"])
-        return False
+        status = {
+            "active": True,  # RAM is always active
+            "system_type": "radar_absorbent_material",
+            "material": self.active_material.name if self.active_material else "None",
+            "thickness_mm": self.active_material.thickness if self.active_material else 0.0,
+            "temperature_range": self.active_material.temperature_range if self.active_material else (0.0, 0.0),
+            "average_attenuation_db": 0.0
+        }
+        
+        # Calculate average attenuation if material is selected
+        if self.active_material:
+            attenuations = list(self.active_material.frequency_response.values())
+            status["average_attenuation_db"] = sum(attenuations) / len(attenuations) if attenuations else 0
+            
+        return status

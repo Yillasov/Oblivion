@@ -1,0 +1,82 @@
+{
+  "ferrite_composite": {
+    "name": "Ferrite Composite",
+    "density": 2200.0,
+    "thickness": 3.0,
+    "frequency_response": {
+      "1.0": 10.0,
+      "5.0": 15.0,
+      "10.0": 12.0,
+      "15.0": 8.0
+    },
+    "temperature_range": [-40.0, 120.0],
+    "weather_resistance": 0.7,
+    "durability": 0.8,
+    "cost_factor": 1.0
+  },
+  "advanced_composite": {
+    "name": "Advanced Composite",
+    "density": 1800.0,
+    "thickness": 5.0,
+    "frequency_response": {
+      "1.0": 15.0,
+      "5.0": 22.0,
+      "10.0": 20.0,
+      "15.0": 18.0,
+      "20.0": 15.0
+    },
+    "temperature_range": [-60.0, 150.0],
+    "weather_resistance": 0.9,
+    "durability": 0.85,
+    "cost_factor": 2.5
+  },
+  "carbon_nanotube": {
+    "name": "Carbon Nanotube Composite",
+    "density": 1500.0,
+    "thickness": 2.0,
+    "frequency_response": {
+      "1.0": 18.0,
+      "5.0": 25.0,
+      "10.0": 30.0,
+      "15.0": 28.0,
+      "20.0": 22.0
+    },
+    "temperature_range": [-80.0, 200.0],
+    "weather_resistance": 0.95,
+    "durability": 0.9,
+    "cost_factor": 5.0
+  },
+  "metamaterial_absorber": {
+    "name": "Metamaterial Absorber",
+    "density": 1200.0,
+    "thickness": 1.5,
+    "frequency_response": {
+      "1.0": 20.0,
+      "5.0": 28.0,
+      "10.0": 35.0,
+      "15.0": 32.0,
+      "20.0": 30.0,
+      "30.0": 25.0
+    },
+    "temperature_range": [-100.0, 250.0],
+    "weather_resistance": 0.98,
+    "durability": 0.85,
+    "cost_factor": 8.0
+  },
+  "magnetic_composite": {
+    "name": "Magnetic Composite",
+    "density": 2500.0,
+    "thickness": 4.0,
+    "frequency_response": {
+      "0.5": 12.0,
+      "1.0": 16.0,
+      "2.0": 20.0,
+      "5.0": 18.0,
+      "10.0": 15.0
+    },
+    "temperature_range": [-20.0, 180.0],
+    "weather_resistance": 0.75,
+    "durability": 0.9,
+    "cost_factor": 3.0
+  }
+}

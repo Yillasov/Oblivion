@@ -36,12 +36,24 @@ class WeaponType(Enum):
 
 class SensorType(Enum):
     """Types of sensor payloads."""
+    # Basic sensor types
     RADAR = auto()
     ELECTRO_OPTICAL = auto()
     INFRARED = auto()
     LIDAR = auto()
     MULTI_SPECTRAL = auto()
     SIGNALS_INTELLIGENCE = auto()
+    
+    # Advanced sensor types
+    QUANTUM_RADAR = auto()
+    HYPERSPECTRAL = auto()
+    SYNTHETIC_APERTURE_RADAR = auto()
+    GRAPHENE_INFRARED = auto()
+    BIO_MIMETIC = auto()
+    MULTI_SPECTRAL_EO_IR = auto()
+    DISTRIBUTED_APERTURE = auto()
+    NEUROMORPHIC_VISION = auto()
+    TERAHERTZ = auto()
 
 
 class ElectronicWarfareType(Enum):

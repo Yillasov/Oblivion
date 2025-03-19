@@ -17,6 +17,7 @@ logger = get_logger("sensors")
 
 class SensorType(Enum):
     """Types of sensors that can be simulated."""
+    # Basic sensor types
     RADAR = 0
     INFRARED = 1
     OPTICAL = 2
@@ -24,6 +25,17 @@ class SensorType(Enum):
     GPS = 4
     IMU = 5
     ALTIMETER = 6
+    
+    # Advanced sensor types
+    QUANTUM_RADAR = 7
+    HYPERSPECTRAL = 8
+    SYNTHETIC_APERTURE_RADAR = 9
+    GRAPHENE_INFRARED = 10
+    BIO_MIMETIC = 11
+    MULTI_SPECTRAL_EO_IR = 12
+    DISTRIBUTED_APERTURE = 13
+    NEUROMORPHIC_VISION = 14
+    TERAHERTZ = 15
 
 
 @dataclass

@@ -87,7 +87,7 @@ class GrapheneIRImplementation(GrapheneInfraredSensor):
             target_temp = ambient_temp + target_ir / 10.0  # Convert IR signature to temperature
             
             # Calculate detection probability
-            detection_prob = self._calculate_detection_probability(target_temp, ambient_temp, distance)
+            detection_prob = self._calculate_detection_probability(target_temp, ambient_temp, float(distance))
             
             # Random detection based on probability
             if self.rng.random() < detection_prob:

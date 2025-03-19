@@ -208,7 +208,7 @@ class SensorSimEnvironment:
             })
         
         # Increment simulation time and step
-        self.simulation_time += self.current_scenario.time_step
+        self.simulation_time += getattr(self.current_scenario, 'time_step', 0.1)
         self.current_step += 1
     
     def _get_platform_state_at_time(self, time: float) -> Dict[str, Any]:

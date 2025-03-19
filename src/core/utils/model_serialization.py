@@ -131,3 +131,53 @@ class ModelSerializer:
             return {k: ModelSerializer._convert_lists_to_numpy(v) for k, v in obj.items()}
         else:
             return obj
+
+    @staticmethod
+    def serialize_neuromorphic_data(data: Dict[str, Any], path: str) -> bool:
+        """
+        Serialize neuromorphic data to file.
+        
+        Args:
+            data: Neuromorphic data to serialize
+            path: Path to save serialized data
+            
+        Returns:
+            bool: Success status
+        """
+        try:
+            # Convert spike trains and neuron states to efficient formats
+            serialized_data = ModelSerializer._convert_numpy_to_lists(data)
+            with open(path, 'w') as f:
+                json.dump(serialized_data, f, indent=2)
+            
+            logger.info(f"Serialized neuromorphic data to {path}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error serializing neuromorphic data: {str(e)}")
+            return False
+    
+    @staticmethod
+    def deserialize_neuromorphic_data(path: str) -> Optional[Dict[str, Any]]:
+        """
+        Deserialize neuromorphic data from file.
+        
+        Args:
+            path: Path to serialized neuromorphic data
+            
+        Returns:
+            Dict[str, Any]: Deserialized neuromorphic data or None if failed
+        """
+        try:
+            with open(path, 'r') as f:
+                json_data = json.load(f)
+            
+            # Convert lists back to numpy arrays for spike trains and neuron states
+            data = ModelSerializer._convert_lists_to_numpy(json_data)
+            
+            logger.info(f"Deserialized neuromorphic data from {path}")
+            return data
+            
+        except Exception as e:
+            logger.error(f"Error deserializing neuromorphic data: {str(e)}")
+            return None

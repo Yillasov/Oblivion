@@ -96,7 +96,7 @@ class HyperspectralImplementation(HyperspectralSensor):
             target_material = target.get('material', 'unknown')
             
             # Calculate detection probability
-            detection_prob = self._calculate_detection_probability(distance, environment)
+            detection_prob = self._calculate_detection_probability(float(distance), environment)
             
             # Random detection based on probability
             if self.rng.random() < detection_prob:
@@ -234,7 +234,7 @@ class HyperspectralImplementation(HyperspectralSensor):
         # Higher standard deviation indicates more distinctive features
         confidence = min(0.95, max(0.5, std_reflectance * 5))
         
-        return confidence
+        return float(confidence)
     
     def get_material_analysis(self) -> Dict[str, Any]:
         """Get material analysis results."""

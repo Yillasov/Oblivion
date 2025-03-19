@@ -165,8 +165,8 @@ class VisualSignatureMatcher:
                                     (current_pattern.shape[1], current_pattern.shape[0]))
             
         # Linear blending - ensure inputs are the right type
-        alpha = float(1.0 - blend_factor)
-        beta = float(blend_factor)
+        alpha = float(1.0 - (blend_factor if blend_factor is not None else 0.0))
+        beta = float(blend_factor if blend_factor is not None else 0.0)
         gamma = 0.0
         blended = cv2.addWeighted(current_pattern.astype(np.uint8), alpha, 
                                  new_pattern.astype(np.uint8), beta, gamma)

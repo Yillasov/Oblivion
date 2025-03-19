@@ -65,6 +65,7 @@ class NeuromorphicMemoryManager:
         self.regions: Dict[int, MemoryRegion] = {}
         self.allocated_blocks: Dict[int, MemoryBlock] = {}
         self.next_block_id = 0
+        self.power_mode = "balanced"  # Default power mode
     
     def add_memory_region(self, start_address: int, size: int, 
                           region_type: str) -> int:
@@ -166,6 +167,32 @@ class NeuromorphicMemoryManager:
         logger.info(f"Allocated block {block_id}: {block_type}, {size} bytes at {current_address}")
         return block_id
     
+    def optimize_allocation(self) -> None:
+        """
+        Optimize memory allocation across all regions.
+        
+        This method attempts to minimize fragmentation and maximize utilization
+        by rearranging memory blocks.
+        """
+        logger.info("Starting memory allocation optimization")
+        
+        for region in self.regions.values():
+            # Sort blocks by start address
+            region.blocks.sort(key=lambda b: b.start_address)
+            
+            # Compact blocks to minimize fragmentation
+            current_address = region.start_address
+            for block in region.blocks:
+                if block.in_use and block.start_address != current_address:
+                    logger.info(f"Moving block from {block.start_address} to {current_address}")
+                    block.start_address = current_address
+                current_address += block.size
+            
+            # Update free space
+            region.free_space = (region.start_address + region.size) - current_address
+        
+        logger.info("Memory allocation optimization complete")
+
     def free_memory(self, block_id: int) -> bool:
         """
         Free an allocated memory block.
@@ -297,3 +324,56 @@ class NeuromorphicMemoryManager:
                     best_region_id = region_id
         
         return best_region_id
+
+    def set_power_mode(self, mode: str) -> None:
+        """
+        Set the power mode for the memory manager.
+        
+        Args:
+            mode: Power mode to set ('high_performance', 'balanced', 'power_saving')
+        """
+        if mode not in ["high_performance", "balanced", "power_saving"]:
+            logger.error(f"Invalid power mode: {mode}")
+            return
+        
+        self.power_mode = mode
+        logger.info(f"Power mode set to {mode}")
+        self._apply_power_mode()
+
+    def _apply_power_mode(self) -> None:
+        """
+        Apply the current power mode settings.
+        """
+        if self.power_mode == "high_performance":
+            # Maximize performance, potentially at the cost of higher power usage
+            self._optimize_for_performance()
+        elif self.power_mode == "balanced":
+            # Balance between performance and power usage
+            self._optimize_for_balance()
+        elif self.power_mode == "power_saving":
+            # Minimize power usage, potentially at the cost of performance
+            self._optimize_for_power_saving()
+
+    def _optimize_for_performance(self) -> None:
+        """
+        Optimize settings for high performance.
+        """
+        logger.info("Optimizing for high performance")
+        # Implement performance optimization logic here
+        # Example: Increase memory access speed, prioritize resource allocation
+
+    def _optimize_for_balance(self) -> None:
+        """
+        Optimize settings for balanced performance and power usage.
+        """
+        logger.info("Optimizing for balanced performance and power usage")
+        # Implement balanced optimization logic here
+        # Example: Moderate memory access speed, balanced resource allocation
+
+    def _optimize_for_power_saving(self) -> None:
+        """
+        Optimize settings for power saving.
+        """
+        logger.info("Optimizing for power saving")
+        # Implement power-saving optimization logic here
+        # Example: Reduce memory access speed, limit resource allocation

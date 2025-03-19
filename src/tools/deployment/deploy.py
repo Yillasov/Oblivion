@@ -20,6 +20,7 @@ sys.path.append("/Users/yessine/Oblivion")
 
 from src.core.utils.logging_framework import get_logger
 from src.core.hardware.config_manager import HardwareConfigManager
+from src.core.hardware.config_migration import ConfigMigration
 from src.core.hardware.hardware_detection import hardware_detector
 from src.core.integration.neuromorphic_system import NeuromorphicSystem
 
@@ -491,6 +492,9 @@ echo "Deployment completed successfully"
                     logger.error("Hardware pre-deployment checks failed")
                     return False
                 
+                # Transition from simulation to hardware
+                self._transition_simulation_to_hardware(hardware_type, extract_dir)
+                
                 # Run deployment script
                 cmd = f"cd {extract_dir} && ./deploy.sh {hardware_address or ''}"
                 result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
@@ -509,6 +513,31 @@ echo "Deployment completed successfully"
                 # Clean up
                 if os.path.exists(extract_dir):
                     shutil.rmtree(extract_dir)
+
+        def _transition_simulation_to_hardware(self, hardware_type: str, extract_dir: str) -> None:
+            """Transition configurations and resources from simulation to hardware."""
+            logger.info(f"Transitioning from simulation to {hardware_type} hardware")
+            # Load simulation configuration
+            sim_config_path = os.path.join(extract_dir, "simulation_config.json")
+            with open(sim_config_path, 'r') as f:
+                sim_config = json.load(f)
+            
+            # Transform configuration for hardware deployment
+            if hardware_type == "loihi":
+                hardware_config = ConfigMigration._simulated_to_loihi(sim_config)
+            elif hardware_type == "spinnaker":
+                hardware_config = ConfigMigration._simulated_to_spinnaker(sim_config)
+            elif hardware_type == "truenorth":
+                hardware_config = ConfigMigration._simulated_to_truenorth(sim_config)
+            else:
+                hardware_config = ConfigMigration._generic_to_simulated(sim_config)
+            
+            # Save transformed configuration
+            hardware_config_path = os.path.join(extract_dir, "hardware_config.json")
+            with open(hardware_config_path, 'w') as f:
+                json.dump(hardware_config, f)
+            
+            logger.info(f"Configuration transitioned for {hardware_type} hardware")
         
         def _confirm_deployment_mismatch(self) -> bool:
             """Confirm deployment when hardware type doesn't match."""
@@ -516,7 +545,7 @@ echo "Deployment completed successfully"
                 response = input("Hardware type mismatch. Continue anyway? (y/N): ")
                 return response.lower() == 'y'
             return False
-    
+        
         def _run_hardware_checks(self, hardware_type: str, package_dir: str) -> bool:
             """Run hardware-specific pre-deployment checks."""
             # Load hardware config
@@ -532,17 +561,17 @@ echo "Deployment completed successfully"
             elif hardware_type == "truenorth":
                 return self._check_truenorth_requirements(config)
             return True
-    
+        
         def _check_loihi_requirements(self, config: Dict[str, Any]) -> bool:
             """Check Loihi-specific requirements."""
             # Simple check for demonstration
             return True
-    
+        
         def _check_spinnaker_requirements(self, config: Dict[str, Any]) -> bool:
             """Check SpiNNaker-specific requirements."""
             # Simple check for demonstration
             return True
-    
+        
         def _check_truenorth_requirements(self, config: Dict[str, Any]) -> bool:
             """Check TrueNorth-specific requirements."""
             # Simple check for demonstration

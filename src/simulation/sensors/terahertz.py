@@ -136,7 +136,7 @@ class TerahertzImplementation(TerahertzSensor):
             
             # Calculate detection probability
             detection_prob = self._calculate_detection_probability(
-                distance, is_hidden, penetrated_material, penetration_distance
+                float(distance), is_hidden, penetrated_material, float(penetration_distance)
             )
             
             # Random detection based on probability
@@ -159,7 +159,7 @@ class TerahertzImplementation(TerahertzSensor):
                     material_penetrations.append({
                         'material': penetrated_material,
                         'thickness': float(penetration_distance),
-                        'attenuation': self._calculate_attenuation(penetrated_material, penetration_distance)
+                        'attenuation': self._calculate_attenuation(str(penetrated_material), penetration_distance)
                     })
                     
                     hidden_object_detections.append({

@@ -127,7 +127,7 @@ class BioMimeticImplementation(BioMimeticSensor):
             
             # Calculate detection probability based on bio-inspiration
             detection_prob = self._calculate_bio_detection_probability(
-                target, distance, environment_features
+                target, float(distance), environment_features
             )
             
             # Random detection based on probability

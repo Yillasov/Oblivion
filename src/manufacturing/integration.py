@@ -11,6 +11,7 @@ import os
 import time
 
 from src.payload.base import PayloadSpecs
+from src.core.messaging.basic_messaging_system import BasicMessagingSystem
 
 
 @dataclass
@@ -33,7 +34,16 @@ class ManufacturingIntegration:
         """Initialize the manufacturing integration system."""
         self.manufacturing_api = manufacturing_system_api
         self.specs_registry: Dict[str, ManufacturingSpec] = {}
-        self.payload_mappings: Dict[str, List[str]] = {}  # Payload ID to component IDs
+        self.payload_mappings: Dict[str, List[str]] = {}
+        self.messaging_system = BasicMessagingSystem()  # Add messaging system
+
+    def notify_propulsion_system(self, message: Dict[str, Any]) -> bool:
+        """Notify the propulsion system with a message."""
+        return self.messaging_system.send_message("propulsion", message)
+
+    def notify_payload_system(self, message: Dict[str, Any]) -> bool:
+        """Notify the payload system with a message."""
+        return self.messaging_system.send_message("payload", message)
     
     def register_component_spec(self, spec: ManufacturingSpec) -> bool:
         """Register manufacturing specifications for a component."""

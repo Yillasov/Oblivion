@@ -25,6 +25,19 @@ class PrototypeTester:
             'thermal': {
                 'temperature_range': [-40, 85],              # Celsius
                 'thermal_cycles': 10
+            },
+            # Hardware-specific protocols
+            'loihi': {
+                'neuron_tests': [100, 500, 1000],           # Number of neurons
+                'synapse_tests': [1000, 5000, 10000]        # Number of synapses
+            },
+            'spinnaker': {
+                'packet_routing_tests': [10, 50, 100],      # Number of packets
+                'latency_tests': [0.1, 0.5, 1.0]            # Latency in ms
+            },
+            'truenorth': {
+                'binary_encoding_tests': [256, 512, 1024],  # Number of binary encodings
+                'power_tests': ['low', 'medium', 'high']    # Power levels
             }
         }
 
@@ -45,6 +58,10 @@ class PrototypeTester:
             # Thermal testing
             thermal_results = self._run_thermal_tests(prototype, test_config)
             test_results['thermal'] = thermal_results
+            
+            # Hardware-specific testing
+            hardware_results = self._run_hardware_specific_tests(prototype, test_config)
+            test_results['hardware_specific'] = hardware_results
             
             # Neuromorphic analysis of test results
             analysis = self.system.process_data({
@@ -90,4 +107,17 @@ class PrototypeTester:
             'protocol': self.test_protocols['thermal'],
             'config': config,
             'computation': 'thermal_testing'
+        })
+
+    def _run_hardware_specific_tests(self, prototype: UCAVGeometry, 
+                                    config: Dict[str, Any]) -> Dict[str, Any]:
+        """Run hardware-specific tests based on the hardware type."""
+        hardware_type = self.system.hardware.hardware_type
+        protocol = self.test_protocols.get(hardware_type, {})
+        
+        return self.system.process_data({
+            'prototype': prototype.__dict__,
+            'protocol': protocol,
+            'config': config,
+            'computation': f'{hardware_type}_testing'
         })

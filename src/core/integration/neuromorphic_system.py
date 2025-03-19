@@ -17,7 +17,8 @@ class NeuromorphicInterface(Protocol):
     """Protocol defining the interface for neuromorphic hardware."""
     def initialize(self) -> None: ...
     def cleanup(self) -> None: ...
-
+    def get_info(self) -> Dict[str, Any]: ...
+    
 logger = get_logger("neuromorphic_system")
 
 
@@ -258,6 +259,42 @@ class NeuromorphicSystem:
         """Set neural connections for learning algorithms to update."""
         self.neural_connections = connections
         logger.info(f"Set {len(connections)} neural connections for learning")
+    
+    def switch_hardware(self, new_hardware_interface: NeuromorphicInterface) -> bool:
+        """Switch to a new hardware interface."""
+        try:
+            logger.info("Switching hardware interface...")
+            
+            # Shutdown current hardware
+            if self.hardware:
+                self.hardware.cleanup()
+            
+            # Initialize new hardware
+            self.hardware = new_hardware_interface
+            self.hardware.initialize()
+            
+            # Reinitialize components and learning algorithms
+            for name, component in self.components.items():
+                if hasattr(component, 'initialize'):
+                    component.initialize()
+            
+            for name, algorithm in self.learning_algorithms.items():
+                if hasattr(algorithm, 'reset'):
+                    algorithm.reset()
+            
+            logger.info("Hardware interface switched successfully")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to switch hardware interface: {str(e)}")
+            return False
+    
+    def get_hardware_info(self) -> Dict[str, Any]:
+        """Get information about the current hardware interface."""
+        if self.hardware:
+            return self.hardware.get_info()
+        else:
+            logger.warning("No hardware interface available")
+            return {}
 
 
 # Example usage

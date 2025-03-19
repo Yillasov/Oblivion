@@ -201,7 +201,7 @@ class FrequencyAnalyzer(NeuromorphicSignalProcessor):
         """Set frequency bands to analyze."""
         self.frequency_bands = bands
         
-    def process(self, signal: np.ndarray) -> Dict[str, np.ndarray]:
+    def process(self, signal: np.ndarray) -> np.ndarray:
         """Analyze frequency content using spike-based processing."""
         if not self.initialized:
             self.initialize()
@@ -228,7 +228,8 @@ class FrequencyAnalyzer(NeuromorphicSignalProcessor):
         self.band_responses = band_responses
         results["transitions"] = transitions
         
-        return results
+        # Convert dictionary results to numpy array
+        return np.array(list(results.values()))
 
 
 # Factory function to create signal processors

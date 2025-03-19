@@ -267,6 +267,17 @@ class HardwareSimulator(NeuromorphicInterface):
         self.initialized = False
         logger.info("Hardware simulator cleaned up")
     
+    def get_info(self) -> Dict[str, Any]:
+        """Get information about the hardware simulator."""
+        return {
+            "latency": self.latency,
+            "error_rate": self.error_rate,
+            "noise_level": self.noise_level,
+            "initialized": self.initialized,
+            "neuron_count": len(self.neurons),
+            "synapse_count": len(self.synapses)
+        }
+    
     def allocate_neurons(self, count: int, params: Dict[str, Any] = {}) -> List[int]:
         """
         Allocate neurons on the simulated hardware.

@@ -100,7 +100,7 @@ class QuantumRadarImplementation(QuantumRadarSensor):
             # Calculate detection probability with quantum advantage
             # Quantum radar has better performance against stealth targets
             detection_prob = self._calculate_quantum_detection_probability(
-                target_rcs, distance, environment
+                target_rcs, float(distance), environment
             )
             
             # Random detection based on probability

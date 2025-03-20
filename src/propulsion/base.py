@@ -109,6 +109,16 @@ class PropulsionInterface(ABC):
             Success status
         """
         pass
+    
+    @abstractmethod
+    def shutdown(self) -> bool:
+        """
+        Safely shutdown the propulsion system.
+        
+        Returns:
+            Success status
+        """
+        pass
 
 
 class NeuromorphicPropulsion(PropulsionInterface):

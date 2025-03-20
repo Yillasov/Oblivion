@@ -208,7 +208,10 @@ class TerahertzSystem(CommunicationSystem):
     
     def _calculate_beam_direction(self) -> None:
         """Calculate beam direction (azimuth, elevation) to target."""
-        x, y, z = self.target_position
+        if self.target_position is None:
+            x, y, z = 0.0, 0.0, 0.0
+        else:
+            x, y, z = self.target_position
         
         # Calculate azimuth (horizontal angle)
         azimuth = np.degrees(np.arctan2(y, x))

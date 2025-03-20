@@ -15,14 +15,17 @@ from src.communication.base import CommunicationSystem, CommunicationSpecs
 class CommunicationIntegrator:
     """Framework for integrating communication systems with UCAV platform."""
     
-    def __init__(self, hardware_interface=None):
+    def __init__(self, hardware_interface=None, config=None):
         """
         Initialize the communication integrator.
         
         Args:
             hardware_interface: Interface to neuromorphic hardware
+            config: Optional configuration parameters
         """
-        self.system = NeuromorphicSystem(hardware_interface)
+        from src.core.integration.system_factory import NeuromorphicSystemFactory
+        
+        self.system = NeuromorphicSystemFactory.create_system(hardware_interface, config)
         self.communication_systems: Dict[str, CommunicationSystem] = {}
         self.system_states: Dict[str, Dict[str, Any]] = {}
         self.active_links: Dict[str, Dict[str, Any]] = {}

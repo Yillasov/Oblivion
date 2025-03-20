@@ -149,10 +149,10 @@ class MolecularCommunicationSystem(CommunicationSystem):
             return False
         
         # Calculate signal propagation time based on diffusion model
-        self.signal_propagation_time = self._calculate_propagation_time(distance)
+        self.signal_propagation_time = self._calculate_propagation_time(float(distance))
         
         # Calculate initial concentration at target
-        self.current_concentration = self._calculate_concentration(distance)
+        self.current_concentration = self._calculate_concentration(float(distance))
         
         # Update status
         self.status.update({

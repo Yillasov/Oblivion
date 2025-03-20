@@ -319,7 +319,7 @@ class LandingGearManufacturingIntegration:
     def generate_quality_control_procedures(self, gear_id: str) -> Dict[str, List[str]]:
         """Generate quality control procedures for a landing gear."""
         if gear_id not in self.gear_mappings:
-            return {"error": "Landing gear not registered for manufacturing"}
+            return {"error": ["Landing gear not registered for manufacturing"]}
             
         spec_id = self.gear_mappings[gear_id]
         spec = self.specs_registry[spec_id]

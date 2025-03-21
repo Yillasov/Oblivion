@@ -176,7 +176,7 @@ class WirelessPowerReceiver:
                  receiver_id: str,
                  max_power: float = 5.0,  # kW
                  efficiency: float = 0.85,
-                 compatible_modes: List[WirelessTransmissionMode] = None):
+                 compatible_modes: List[WirelessTransmissionMode] = []):
         """
         Initialize wireless power receiver.
         
@@ -522,7 +522,7 @@ class WirelessPowerManager:
                         "parameter": "alignment",
                         "old_value": old_alignment,
                         "new_value": best_alignment,
-                        "improvement": f"{(best_efficiency / (test_power / allocation if allocation > 0 else 1.0) - 1.0) * 100:.1f}%"
+                        "improvement": f"{((best_efficiency - 1.0) * 100):.1f}%"
                     }
         
         return optimization_results

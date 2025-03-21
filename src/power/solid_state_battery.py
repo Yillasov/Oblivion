@@ -536,7 +536,7 @@ class SolidStateBattery(NeuromorphicPowerSupply):
     
     # Add these methods to the SolidStateBattery class before the to_power_resource method
     
-    def calculate_output(self, conditions: Dict[str, Any] = None) -> float:
+    def calculate_output(self, conditions: Dict[str, Any] = {}) -> Dict[str, float]:
         """
         Calculate the current output power based on conditions.
         
@@ -547,7 +547,7 @@ class SolidStateBattery(NeuromorphicPowerSupply):
             Current output power in kW
         """
         if not self.initialized or not self.status["active"]:
-            return 0.0
+            return {"output": 0.0, "temperature_factor": 0.0, "health_factor": 0.0}
             
         # Default conditions if none provided
         if conditions is None:
@@ -575,7 +575,11 @@ class SolidStateBattery(NeuromorphicPowerSupply):
         if "demand_limit" in conditions:
             output = min(output, conditions["demand_limit"])
             
-        return output
+        return {
+            "output": output,
+            "temperature_factor": temp_factor,
+            "health_factor": health_factor
+        }
     
     def set_output_level(self, level: float) -> bool:
         """

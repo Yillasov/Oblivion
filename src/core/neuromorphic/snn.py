@@ -155,6 +155,33 @@ class SynapticConnection:
         logger.info(f"Created {topology} connection from population of {pre_population.size} to "
                    f"population of {post_population.size} with {len(self.connections)} synapses")
     
+    def connect_random(self, probability: float = 0.1, weight_range: Tuple[float, float] = (0.1, 0.5)) -> None:
+        """
+        Create random connections between pre and post populations.
+        
+        Args:
+            probability: Connection probability (0.0-1.0)
+            weight_range: Range of weights (min, max)
+        """
+        min_weight, max_weight = weight_range
+        self.connections = []
+        
+        for i in range(self.pre_population.size):
+            for j in range(self.post_population.size):
+                if np.random.random() < probability:
+                    weight = min_weight + np.random.random() * (max_weight - min_weight)
+                    self.connections.append((i, j, weight))
+        
+        logger.info(f"Created {len(self.connections)} random connections with probability {probability}")
+        
+        # Update the topology type
+        self.topology_type = 'random'
+        self.topology_params = {
+            'connection_prob': probability,
+            'weight_mean': (min_weight + max_weight) / 2,
+            'weight_std': (max_weight - min_weight) / 4
+        }
+    
     def get_connection_list(self) -> List[Tuple[int, int, float]]:
         """
         Get the list of connections as (pre_id, post_id, weight) tuples.

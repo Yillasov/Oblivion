@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class PayloadSpecs:
+class PayloadSpecification:
     """Specifications for a payload system."""
     weight: float  # Weight in kg
     volume: Dict[str, float]  # Dimensions in meters (length, width, height)

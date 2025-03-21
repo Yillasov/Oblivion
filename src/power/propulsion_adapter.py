@@ -286,7 +286,7 @@ class PropulsionPowerAdapter:
             logger.error(f"Error handling propulsion event: {str(e)}")
             return False
     
-    def get_propulsion_power_status(self, system_id: str = None) -> Dict[str, Any]:
+    def get_propulsion_power_status(self, system_id: Optional[str] = None) -> Dict[str, Any]:
         """
         Get power status for propulsion systems.
         

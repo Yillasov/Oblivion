@@ -29,7 +29,7 @@ class NeuromorphicLogger:
     # Default format
     DEFAULT_FORMAT = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
     
-    def __init__(self, name: str = "neuromorphic_sdk", log_dir: str = "/Users/yessine/Oblivion/logs"):
+    def __init__(self, name: str = "neuromorphic_sdk", log_dir: str = "logs"):
         """
         Initialize the logger.
         
@@ -38,7 +38,7 @@ class NeuromorphicLogger:
             log_dir: Directory to store log files
         """
         self.name = name
-        self.log_dir = log_dir
+        self.log_dir = log_dir  # Use a relative path for the log directory
         self.loggers: Dict[str, logging.Logger] = {}
         
         # Create log directory if it doesn't exist

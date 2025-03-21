@@ -92,4 +92,4 @@ if __name__ == "__main__":
     
     # Example resource allocation
     resources = {"fuel": 100, "power": 50}
-    optimized_resources = optimizer.optimize_resource_allocation(resources)
+    optimized_resources = optimizer.optimize_resource_allocation({key: float(value) for key, value in resources.items()})

@@ -119,6 +119,19 @@ class PropulsionInterface(ABC):
             Success status
         """
         pass
+    
+    @abstractmethod
+    def set_power_level(self, power_level: float) -> bool:
+        """
+        Set the power level for this propulsion system.
+        
+        Args:
+            power_level: Power level as a percentage (0-100)
+            
+        Returns:
+            Success status
+        """
+        pass
 
 
 class NeuromorphicPropulsion(PropulsionInterface):

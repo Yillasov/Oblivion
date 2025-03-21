@@ -356,3 +356,53 @@ def create_example_system():
     system.initialize()
     
     return system
+
+
+# Add this method to the NeuromorphicSystem class
+
+def train(self, training_data: Dict[str, Any]) -> bool:
+    """
+    Train the neuromorphic system with provided data.
+    
+    Args:
+        training_data: Dictionary containing training data and parameters
+            - 'algorithm': Learning algorithm to use
+            - 'algorithm_name': Name for the algorithm
+            - 'inputs': Input data for training
+            - 'targets': Target outputs for supervised learning
+            - 'component_data': Component-specific training data
+            
+    Returns:
+        bool: Success status
+    """
+    try:
+        # Add a learning algorithm if provided
+        if "algorithm" in training_data and "algorithm_name" in training_data:
+            self.add_learning_algorithm(
+                training_data["algorithm_name"], 
+                training_data["algorithm"]
+            )
+        
+        # Process training data through the system
+        if "inputs" in training_data:
+            self.process_data(training_data["inputs"])
+            
+        # If there are specific components to train
+        if "component_data" in training_data:
+            for component_name, data in training_data["component_data"].items():
+                if component_name in self.components:
+                    component = self.components[component_name]
+                    if hasattr(component, 'train'):
+                        component.train(data)
+        
+        # Update learning algorithms with target data if available
+        if "targets" in training_data and self.learning_algorithms:
+            for name, algorithm in self.learning_algorithms.items():
+                if hasattr(algorithm, 'train'):
+                    algorithm.train(training_data["inputs"], training_data["targets"])
+        
+        logger.info("Neuromorphic system training completed successfully")
+        return True
+    except Exception as e:
+        logger.error(f"Error training neuromorphic system: {str(e)}")
+        return False

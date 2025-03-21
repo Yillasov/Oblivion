@@ -16,6 +16,21 @@ class PayloadSpecs:
     mounting_points: List[str]  # Required mounting points on the UCAV
 
 
+"""Base interfaces and data structures for payload systems."""
+
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import Dict, List, Any, Optional
+
+@dataclass
+class PayloadSpecs:
+    """Specifications for a payload system."""
+    weight: float  # Weight in kg
+    volume: Dict[str, float]  # Dimensions in meters (length, width, height)
+    power_requirements: float  # Power requirements in watts
+    mounting_points: List[str]
+
+
 class PayloadInterface(ABC):
     """Base interface for all payload systems."""
     
@@ -42,6 +57,32 @@ class PayloadInterface(ABC):
     @abstractmethod
     def get_status(self) -> Dict[str, Any]:
         """Get the current status of the payload."""
+        pass
+    
+    @abstractmethod
+    def set_power_level(self, power_level: float) -> bool:
+        """
+        Set the power level for this payload system.
+        
+        Args:
+            power_level: Power level as a percentage (0-100)
+            
+        Returns:
+            Success status
+        """
+        pass
+    
+    @abstractmethod
+    def set_power(self, power_ratio: float) -> bool:
+        """
+        Set the power ratio for this payload system.
+        
+        Args:
+            power_ratio: Power ratio (0.0-1.0)
+            
+        Returns:
+            Success status
+        """
         pass
 
 

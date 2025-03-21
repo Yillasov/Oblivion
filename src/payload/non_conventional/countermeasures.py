@@ -2,12 +2,16 @@
 Adaptive countermeasure systems for UCAV platforms.
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Union, Set
 import numpy as np
 from dataclasses import dataclass, field
 
 from src.payload.base import NeuromorphicPayload, PayloadSpecs
-from src.payload.types import CountermeasureType, PayloadCategory
+from src.payload.types import (
+    CountermeasureType, PayloadCategory, JammingFrequencyBand,
+    ChaffType, LaserDefenseType, DecoySignatureType, EMPStrength,
+    CyberAttackVector, AcousticDisruptionMode
+)
 
 
 @dataclass
@@ -18,6 +22,70 @@ class CountermeasureSpecs(PayloadSpecs):
     effectiveness_rating: float  # Effectiveness rating (0-1)
     capacity: int  # Number of deployments available
     coverage_angle: float  # Coverage angle in degrees
+    
+    # Advanced properties for all countermeasure types
+    energy_consumption: float = 100.0  # Energy consumption in watts
+    thermal_signature: float = 0.3  # Thermal signature (0-1)
+    stealth_impact: float = 0.1  # Impact on platform stealth (0-1)
+    cooldown_time: float = 2.0  # Time between deployments in seconds
+    neuromorphic_processing_requirements: Dict[str, Any] = field(default_factory=lambda: {
+        "snn_neurons": 1000,
+        "learning_enabled": True,
+        "adaptation_rate": 0.5
+    })
+    
+    # Specific properties for different countermeasure types
+    frequency_bands: Set[JammingFrequencyBand] = field(default_factory=set)  # For jammers
+    chaff_type: Optional[ChaffType] = None  # For chaff systems
+    laser_defense_type: Optional[LaserDefenseType] = None  # For laser defense
+    decoy_signature_types: Set[DecoySignatureType] = field(default_factory=set)  # For decoys
+    emp_strength: Optional[EMPStrength] = None  # For EMP systems
+    cyber_attack_vectors: Set[CyberAttackVector] = field(default_factory=set)  # For cyber attacks
+    acoustic_disruption_modes: Set[AcousticDisruptionMode] = field(default_factory=set)  # For acoustic systems
+    
+    # Environmental adaptation parameters
+    environmental_adaptation: Dict[str, Union[List[float], float]] = field(default_factory=lambda: {
+        "temperature_tolerance": [-40.0, 85.0],  # Operating temperature range in Celsius
+        "altitude_effectiveness": 1.0,  # Effectiveness modifier based on altitude
+        "humidity_resistance": 0.9,  # Resistance to humidity (0-1)
+        "rain_effectiveness": 0.8  # Effectiveness in rain (0-1)
+    })
+    
+    # Integration parameters
+    integration_complexity: float = 0.5  # Complexity of integration (0-1)
+    maintenance_hours: float = 10.0  # Required maintenance hours per 100 flight hours
+    software_version: str = "1.0.0"  # Software version
+    hardware_compatibility: List[str] = field(default_factory=lambda: ["standard"])
+    
+    def get_deployment_time(self, threat_level: float = 0.5) -> float:
+        """
+        Calculate deployment time based on response time and threat level.
+        
+        Args:
+            threat_level: Threat level (0-1)
+            
+        Returns:
+            Deployment time in seconds
+        """
+        # Higher threat levels result in faster deployment
+        return max(0.1, self.response_time * (1.0 - (threat_level * 0.5)))
+    
+    def get_effectiveness_against_threat(self, threat_type: str) -> float:
+        """
+        Calculate effectiveness against a specific threat type.
+        
+        Args:
+            threat_type: Type of threat
+            
+        Returns:
+            Effectiveness rating (0-1)
+        """
+        # Base effectiveness
+        effectiveness = self.effectiveness_rating
+        
+        # This would be expanded with specific logic for each countermeasure type
+        # and threat type combination
+        return min(1.0, effectiveness)
 
 
 class AdaptiveCountermeasure(NeuromorphicPayload):

@@ -12,7 +12,9 @@ import time
 
 from src.payload.base import PayloadSpecs
 from src.core.messaging.basic_messaging_system import BasicMessagingSystem
+from src.core.utils.logging_framework import get_logger
 
+logger = get_logger("manufacturing_integration")
 
 @dataclass
 class ManufacturingSpec:
@@ -35,7 +37,8 @@ class ManufacturingIntegration:
         self.manufacturing_api = manufacturing_system_api
         self.specs_registry: Dict[str, ManufacturingSpec] = {}
         self.payload_mappings: Dict[str, List[str]] = {}
-        self.messaging_system = BasicMessagingSystem()  # Add messaging system
+        self.messaging_system = BasicMessagingSystem()
+        logger.info("Manufacturing integration system initialized")
 
     def notify_propulsion_system(self, message: Dict[str, Any]) -> bool:
         """Notify the propulsion system with a message."""

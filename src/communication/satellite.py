@@ -338,3 +338,35 @@ class SatelliteCommunicationSystem(CommunicationSystem):
             self.status["error"] = f"Optimization error: {str(e)}"
             
         return {"optimized": False}
+
+# Add this section at the end of the file
+if __name__ == "__main__":
+    print("Satellite Communication System Module")
+    
+    print("\nAvailable Satellite Networks:")
+    for network in SatelliteNetwork:
+        print(f"- {network.name}: {network.value}")
+    
+    print("\nAvailable Frequency Bands:")
+    for band in SatelliteFrequencyBand:
+        print(f"- {band.name}: {band.value}")
+    
+    # Example usage
+    print("\nExample Satellite System Configuration:")
+    sat_specs = SatelliteSystemSpecs(
+        network=SatelliteNetwork.MILITARY,
+        frequency_band=SatelliteFrequencyBand.X_BAND,
+        data_rate=25.0,  # 25 Mbps
+        encryption_level=256,
+        power_output=30.0,  # 30 Watts
+        antenna_gain=35.0,  # 35 dBi
+        latency=200.0,  # 200 ms
+        weight=12.0,  # 12 kg
+        power_requirements=120.0  # 120 Watts
+    )
+    
+    print(f"Network: {sat_specs.network.value}")
+    print(f"Frequency Band: {sat_specs.frequency_band.value}")
+    print(f"Data Rate: {sat_specs.bandwidth} Mbps")
+    print(f"Latency: {sat_specs.latency} ms")
+    print(f"Antenna Gain: {sat_specs.antenna_gain} dBi")

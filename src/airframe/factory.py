@@ -1,10 +1,24 @@
+import os
+import sys
 from typing import Dict, Any, Type
-from .base import AirframeBase
-from .types import (
-    MorphingWingDrone, BiomimeticDrone, HypersonicDrone,
-    SpaceCapableDrone, UnderwaterLaunchedDrone, SwarmConfiguredDrone,
-    StealthDrone, DirectedEnergyDrone, VTOLHighSpeedDrone, ModularPayloadDrone
-)
+
+# Handle imports for both direct execution and package import
+try:
+    from .base import AirframeBase
+    from .types import (
+        MorphingWingDrone, BiomimeticDrone, HypersonicDrone,
+        SpaceCapableDrone, UnderwaterLaunchedDrone, SwarmConfiguredDrone,
+        StealthDrone, DirectedEnergyDrone, VTOLHighSpeedDrone, ModularPayloadDrone
+    )
+except ImportError:
+    # When running directly as a script
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+    from src.airframe.base import AirframeBase
+    from src.airframe.types import (
+        MorphingWingDrone, BiomimeticDrone, HypersonicDrone,
+        SpaceCapableDrone, UnderwaterLaunchedDrone, SwarmConfiguredDrone,
+        StealthDrone, DirectedEnergyDrone, VTOLHighSpeedDrone, ModularPayloadDrone
+    )
 
 class AirframeFactory:
     """Factory for creating airframe instances."""
@@ -46,3 +60,8 @@ class AirframeFactory:
     def get_available_types(cls) -> list:
         """Get a list of available airframe types."""
         return list(cls._airframe_types.keys())
+
+# Add this for testing when run directly
+if __name__ == "__main__":
+    print("Available airframe types:")
+    print(AirframeFactory.get_available_types())

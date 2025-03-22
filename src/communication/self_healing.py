@@ -62,3 +62,64 @@ class SelfHealingNetwork:
     def get_network_status(self) -> Dict[str, Any]:
         """Get the current status of the network."""
         return self.network_status
+
+# Add this section at the end of the file
+if __name__ == "__main__":
+    print("Self-Healing Network Protocol Module")
+    print("This module provides a self-healing protocol for UCAV communication networks")
+    
+    # Example usage
+    print("\nExample Self-Healing Network Demonstration:")
+    
+    # Create a self-healing network
+    network = SelfHealingNetwork()
+    
+    # Add some nodes to the network
+    print("Adding nodes to the network...")
+    nodes = ["node1", "node2", "node3", "node4", "node5"]
+    
+    for i, node_id in enumerate(nodes):
+        network.update_network_status(node_id, {
+            "active": True,
+            "type": "communication_relay" if i % 2 == 0 else "data_processor",
+            "connections": len(nodes) - 1,
+            "load": i * 10.0
+        })
+        
+    # Set up routing table
+    print("Setting up routing table...")
+    network.routing_table = {
+        "destination1": "node1",
+        "destination2": "node2",
+        "destination3": "node3",
+        "destination4": "node4",
+        "destination5": "node5"
+    }
+    
+    # Print initial network status
+    print("\nInitial Network Status:")
+    for node_id, status in network.get_network_status().items():
+        print(f"- {node_id}: {'Active' if status['active'] else 'Inactive'}, Type: {status['type']}")
+    
+    # Simulate a node failure
+    print("\nSimulating failure of node2...")
+    network.update_network_status("node2", {
+        "active": False,
+        "type": "data_processor",
+        "connections": 0,
+        "load": 0.0,
+        "error": "Connection timeout"
+    })
+    
+    # Monitor and recover
+    print("Monitoring network...")
+    network.monitor_network()
+    print(f"Failed nodes detected: {network.failed_nodes}")
+    
+    print("Attempting recovery...")
+    network.recover_network()
+    
+    # Print routing table after recovery
+    print("\nRouting Table After Recovery:")
+    for dest, next_hop in network.routing_table.items():
+        print(f"- {dest} → {next_hop}")

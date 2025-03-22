@@ -136,6 +136,7 @@ class ResourceAllocationTest(DiagnosticTest):
         """Execute resource allocation test."""
         hardware = hardware_registry.get_hardware(hardware_type)
         if not hardware:
+            logger.error(f"Hardware type '{hardware_type}' not found in registry")
             return False
         
         # Try to allocate neurons

@@ -431,3 +431,46 @@ class MolecularCommunicationSystem(CommunicationSystem):
             })
         
         return self.status
+
+# Add this section at the end of the file
+if __name__ == "__main__":
+    print("Molecular Communication System Module")
+    
+    print("\nAvailable Molecular Signal Types:")
+    for signal_type in MolecularSignalType:
+        print(f"- {signal_type.name}: {signal_type.value}")
+    
+    print("\nAvailable Diffusion Models:")
+    for model in DiffusionModel:
+        print(f"- {model.name}: {model.value}")
+    
+    # Example usage
+    print("\nExample Molecular Communication Configuration:")
+    mol_specs = MolecularSpecs(
+        signal_type=MolecularSignalType.CHEMICAL_GRADIENT,
+        diffusion_model=DiffusionModel.FICK_LAW,
+        molecule_concentration=2.5,
+        diffusion_coefficient=0.8,
+        decay_rate=0.05,
+        detection_threshold=0.1,
+        weight=0.3,
+        volume={"length": 0.05, "width": 0.05, "height": 0.02},
+        power_requirements=0.5,
+        bandwidth=0.001,  # 1 Kbps
+        range=5.0,        # 5 meters
+        latency=2000.0,   # 2 seconds
+        encryption_level=2,
+        resilience_rating=0.9
+    )
+    
+    print(f"Signal Type: {mol_specs.signal_type.value}")
+    print(f"Diffusion Model: {mol_specs.diffusion_model.value}")
+    print(f"Molecule Concentration: {mol_specs.molecule_concentration}")
+    print(f"Diffusion Coefficient: {mol_specs.diffusion_coefficient}")
+    print(f"Range: {mol_specs.range} meters")
+    
+    # Create a system instance
+    print("\nInitializing molecular communication system...")
+    mol_system = MolecularCommunicationSystem(mol_specs)
+    success = mol_system.initialize()
+    print(f"Initialization {'successful' if success else 'failed'}")

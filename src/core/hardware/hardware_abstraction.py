@@ -20,21 +20,16 @@ from src.core.hardware.exceptions import (
     UnsupportedFeatureError,
     NeuromorphicHardwareError
 )
-# Import the LoihiProcessor class
+
+# Fix imports for hardware drivers - only import what's needed for the base class
 from src.core.hardware.loihi_driver import LoihiProcessor
-# Import the SpiNNakerProcessor class
 from src.core.hardware.spinnaker_driver import SpiNNakerProcessor
-# Add this import at the top of the file
-from src.core.hardware.truenorth_hardware import TrueNorthHardware
-# Add this import at the top of the file
-from src.core.hardware.simulated_hardware import SimulatedHardware
-# Add this import at the top of the file
+from src.core.hardware.truenorth_driver import TrueNorthProcessor
+
+# Keep these imports as they don't cause circular dependencies
 from src.core.hardware.communication_protocols import ProtocolFactory
-# Add this import at the top of the file
 from src.core.hardware.data_converters import FormatConverterFactory, DataFormatConverter
-# Add this import at the top of the file
 from src.core.hardware.data_transfer import DataTransfer, TransferMode
-# Add this import at the top of the file
 from src.core.hardware.resource_sharing import (
     get_resource_manager, ResourceType, ResourceSharingError
 )
@@ -592,7 +587,11 @@ class LoihiHardware(NeuromorphicHardware):
                 return True
             return False
 
-# Add this class after the LoihiHardware class
+# Import hardware implementations here to avoid circular imports
+from src.core.hardware.truenorth_hardware import TrueNorthHardware
+from src.core.hardware.simulated_hardware import SimulatedHardware
+
+# The LoihiHardware class definition can remain in this file
 
 class SpiNNakerHardware(NeuromorphicHardware):
     """Hardware abstraction implementation for SpiNNaker."""
@@ -964,4 +963,118 @@ def reserve_hardware(self, user_id: str, resources: Dict[str, int],
             resources, 
             duration_minutes, 
             start_time
+        )
+
+"""
+Hardware abstraction layer with standardized error handling.
+"""
+
+import logging
+from typing import Dict, Any, Optional
+
+from src.core.utils.error_handling import (
+    ErrorContext, handle_errors, HardwareInitializationError,
+    HardwareCommunicationError, HardwareAllocationError,
+    HardwareSimulationError, UnsupportedFeatureError
+)
+
+logger = logging.getLogger(__name__)
+
+class HardwareAbstraction:
+    """Base class for hardware abstraction with standardized error handling."""
+    
+    def __init__(self, hardware_type: str, config: Optional[Dict[str, Any]] = None):
+        """Initialize hardware abstraction."""
+        self.hardware_type = hardware_type
+        self.config = config or {}
+        self.initialized = False
+    
+    @handle_errors(context={"operation": "initialization"})
+    def initialize(self) -> bool:
+        """Initialize hardware with standardized error handling."""
+        try:
+            # Hardware-specific initialization
+            result = self._initialize_impl()
+            self.initialized = result
+            return result
+        except Exception as e:
+            self.initialized = False
+            raise HardwareInitializationError(
+                message=f"Failed to initialize hardware: {str(e)}",
+                details={"hardware_type": self.hardware_type}
+            )
+    
+    def _initialize_impl(self) -> bool:
+        """Implementation of hardware initialization."""
+        # To be implemented by subclasses
+        raise NotImplementedError("Subclasses must implement _initialize_impl")
+    
+    @handle_errors(context={"operation": "communication"})
+    def communicate(self, command: str, data: Any) -> Dict[str, Any]:
+        """Communicate with hardware using standardized error handling."""
+        if not self.initialized:
+            raise HardwareInitializationError(
+                message="Hardware not initialized",
+                details={"hardware_type": self.hardware_type}
+            )
+        
+        try:
+            return self._communicate_impl(command, data)
+        except Exception as e:
+            raise HardwareCommunicationError(
+                message=f"Communication failed: {str(e)}",
+                details={
+                    "hardware_type": self.hardware_type,
+                    "command": command
+                }
+            )
+    
+    def _communicate_impl(self, command: str, data: Any) -> Dict[str, Any]:
+        """Implementation of hardware communication."""
+        # To be implemented by subclasses
+        raise NotImplementedError("Subclasses must implement _communicate_impl")
+    
+    @handle_errors(context={"operation": "cleanup"})
+    def cleanup(self) -> None:
+        """Clean up hardware resources with standardized error handling."""
+        try:
+            self._cleanup_impl()
+        finally:
+            self.initialized = False
+    
+    def _cleanup_impl(self) -> None:
+        """Implementation of hardware cleanup."""
+        # To be implemented by subclasses
+        pass
+    
+    def handle_allocation_error(self, error: Exception, resource_type: str) -> None:
+        """Handle resource allocation errors consistently."""
+        logger.error(f"Hardware allocation error for {resource_type}: {str(error)}")
+        raise HardwareAllocationError(
+            message=f"Failed to allocate {resource_type}: {str(error)}",
+            details={"hardware_type": self.hardware_type, "resource_type": resource_type}
+        )
+    
+    def handle_communication_error(self, error: Exception, operation: str) -> None:
+        """Handle communication errors consistently."""
+        logger.error(f"Hardware communication error during {operation}: {str(error)}")
+        raise HardwareCommunicationError(
+            message=f"Communication failed during {operation}: {str(error)}",
+            details={"hardware_type": self.hardware_type, "operation": operation}
+        )
+    
+    def handle_simulation_error(self, error: Exception) -> None:
+        """Handle simulation errors consistently."""
+        logger.error(f"Hardware simulation error: {str(error)}")
+        raise HardwareSimulationError(
+            message=f"Simulation failed: {str(error)}",
+            details={"hardware_type": self.hardware_type}
+        )
+    
+    def handle_unsupported_feature(self, feature: str) -> None:
+        """Handle unsupported feature errors consistently."""
+        logger.error(f"Unsupported hardware feature: {feature}")
+        raise UnsupportedFeatureError(
+            message=f"Feature not supported: {feature}",
+            details={"hardware_type": self.hardware_type, "feature": feature}
         )

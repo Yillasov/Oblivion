@@ -658,7 +658,7 @@ class MeshNetworkSystem(CommunicationSystem):
             Load balancing results
         """
         if not self.active or len(self.active_connections) <= 1:
-            return {"status": "insufficient_nodes"}
+            return {"status": "insufficient_nodes", "method": "none", "changes": 0}
         
         # Collect connection statistics
         connection_stats = {}
@@ -716,3 +716,91 @@ class MeshNetworkSystem(CommunicationSystem):
             "method": "simple",
             "changes": changes
         }
+
+# Add this section at the end of the file
+if __name__ == "__main__":
+    print("Mesh Network Communication System Module")
+    
+    print("\nAvailable Mesh Routing Protocols:")
+    for protocol in MeshRoutingProtocol:
+        print(f"- {protocol.name}: {protocol.value}")
+    
+    print("\nAvailable Mesh Node Roles:")
+    for role in MeshNodeRole:
+        print(f"- {role.name}: {role.value}")
+    
+    # Example usage
+    print("\nExample Mesh Network Configuration:")
+    
+    # Create communication specs
+    comm_specs = CommunicationSpecs(
+        weight=0.8,
+        volume={"length": 0.15, "width": 0.1, "height": 0.05},
+        power_requirements=5.0,
+        bandwidth=100.0,  # 100 Mbps
+        range=2.0,        # 2 km
+        latency=5.0,      # 5 ms
+        encryption_level=8,
+        resilience_rating=0.95
+    )
+    
+    # Create mesh-specific specs
+    mesh_specs = MeshNetworkSpecs(
+        frequency_band=5.8,  # 5.8 GHz
+        channel_bandwidth=40.0,  # 40 MHz
+        max_nodes=50,
+        routing_protocol=MeshRoutingProtocol.HYBRID,
+        encryption_type="AES-256",
+        max_hops=8,
+        node_role=MeshNodeRole.BACKBONE
+    )
+    
+    print(f"Frequency Band: {mesh_specs.frequency_band} GHz")
+    print(f"Channel Bandwidth: {mesh_specs.channel_bandwidth} MHz")
+    print(f"Max Nodes: {mesh_specs.max_nodes}")
+    print(f"Routing Protocol: {mesh_specs.routing_protocol.value}")
+    print(f"Node Role: {mesh_specs.node_role.value}")
+    
+    # Create a system instance
+    print("\nInitializing mesh network system...")
+    mesh_system = MeshNetworkSystem(comm_specs, mesh_specs)
+    
+    # Initialize the system
+    success = mesh_system.initialize()
+    print(f"Initialization {'successful' if success else 'failed'}")
+    
+    if success:
+        # Discover nodes
+        print("\nDiscovering network nodes...")
+        discovered_nodes = mesh_system.discover_nodes()
+        print(f"Discovered {len(discovered_nodes)} nodes")
+        
+        # Simulate connecting to some nodes
+        print("\nSimulating network connections...")
+        for i in range(3):
+            node_id = f"simulated_node_{i+1}"
+            node_data = {
+                "node_id": node_id,
+                "role": MeshNodeRole.STANDARD.value,
+                "position": [np.random.uniform(-1, 1), np.random.uniform(-1, 1), np.random.uniform(0, 0.5)],
+                "hops": 1,
+                "routes": {}
+            }
+            
+            connection_success = mesh_system._connect_to_node(node_id, node_data)
+            print(f"Connection to {node_id}: {'Successful' if connection_success else 'Failed'}")
+        
+        # Get network topology
+        print("\nNetwork Topology:")
+        topology = mesh_system.get_network_topology()
+        print(f"- Nodes: {topology['stats']['node_count']}")
+        print(f"- Connections: {topology['stats']['connection_count']}")
+        print(f"- Routes: {topology['stats']['route_count']}")
+        print(f"- Network Stability: {topology['stats']['network_stability']:.2f}")
+        
+        # Implement load balancing
+        print("\nImplementing load balancing...")
+        load_balance_result = mesh_system.implement_load_balancing()
+        print(f"Load balancing status: {load_balance_result['status']}")
+        print(f"Method: {load_balance_result['method']}")
+        print(f"Changes: {load_balance_result['changes']}")

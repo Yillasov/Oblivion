@@ -1,6 +1,15 @@
+import os
+import sys
 from typing import Dict, Any, List, Optional
 import numpy as np
-from .base import AirframeBase
+
+# Handle imports for both direct execution and package import
+try:
+    from .base import AirframeBase
+except ImportError:
+    # When running directly as a script
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+    from src.airframe.base import AirframeBase
 
 class MorphingWingDrone(AirframeBase):
     """Morphing wing drone with adaptive geometry."""
@@ -206,3 +215,19 @@ class HypersonicDrone(AirframeBase):
     
     def get_neuromorphic_integration_points(self) -> Dict[str, Any]:
         return {"hypersonic_flight_control": {"sensor_inputs": ["temperature", "pressure"]}}
+
+
+# Add this for testing when run directly
+if __name__ == "__main__":
+    print("Airframe types loaded successfully")
+    print("Available drone types:")
+    print("- MorphingWingDrone")
+    print("- BiomimeticDrone")
+    print("- HypersonicDrone")
+    print("- SpaceCapableDrone")
+    print("- UnderwaterLaunchedDrone")
+    print("- SwarmConfiguredDrone")
+    print("- StealthDrone")
+    print("- DirectedEnergyDrone")
+    print("- VTOLHighSpeedDrone")
+    print("- ModularPayloadDrone")

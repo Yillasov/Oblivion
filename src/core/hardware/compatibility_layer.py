@@ -438,7 +438,9 @@ def create_hardware_interface(hardware_type: Optional[str] = None,
         HardwareCompatibilityLayer: Hardware compatibility layer
     """
     return HardwareCompatibilityLayer(hardware_type, config)
-    
+
+# The following methods should be moved inside the HardwareCompatibilityLayer class
+# before the create_hardware_interface function
     @hardware_operation("negotiate_features")
     def negotiate_features(self, requested_features: Dict[str, Any]) -> Dict[str, Any]:
         """

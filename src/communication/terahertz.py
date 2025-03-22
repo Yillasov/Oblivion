@@ -390,3 +390,59 @@ class TerahertzSystem(CommunicationSystem):
                 self.status["error"] = f"Error calculating link metrics: {str(e)}"
         
         return self.status
+
+# Add this section at the end of the file
+if __name__ == "__main__":
+    print("Terahertz Communication System Module")
+    
+    print("\nAvailable Terahertz Bands:")
+    for band in TerahertzBand:
+        print(f"- {band.name}: {band.value}")
+    
+    print("\nAvailable Modulation Schemes:")
+    for scheme in ModulationScheme:
+        print(f"- {scheme.name}: {scheme.value}")
+    
+    # Example usage
+    print("\nExample Terahertz System Configuration:")
+    thz_specs = TerahertzSpecs(
+        frequency_band=TerahertzBand.MID,
+        modulation_scheme=ModulationScheme.OFDM,
+        beam_width_degrees=1.5,
+        atmospheric_absorption=0.4,
+        weight=0.25,
+        bandwidth=200.0,  # 200 GHz
+        range_km=0.8,     # 800 meters
+        latency=0.05      # 0.05 ms
+    )
+    
+    print(f"Frequency Band: {thz_specs.frequency_band.value}")
+    print(f"Modulation Scheme: {thz_specs.modulation_scheme.value}")
+    print(f"Bandwidth: {thz_specs.bandwidth} GHz")
+    print(f"Range: {thz_specs.range} km")
+    print(f"Beam Width: {thz_specs.beam_width_degrees}°")
+    
+    # Create a system instance
+    print("\nInitializing terahertz communication system...")
+    thz_system = TerahertzSystem(thz_specs)
+    success = thz_system.initialize()
+    print(f"Initialization {'successful' if success else 'failed'}")
+    
+    if success:
+        # Simulate establishing a link
+        print("\nSimulating link establishment...")
+        target_data = {
+            "position": [100.0, 50.0, 20.0]  # Target at 100m east, 50m north, 20m up
+        }
+        
+        link_success = thz_system.establish_link(target_data)
+        print(f"Link establishment {'successful' if link_success else 'failed'}")
+        
+        if link_success:
+            # Get link status
+            status = thz_system.get_status()
+            print("\nLink Status:")
+            print(f"- Link Quality: {status['link_quality']:.2f}")
+            print(f"- Signal-to-Noise Ratio: {status['signal_to_noise']:.1f} dB")
+            print(f"- Bit Error Rate: {status['bit_error_rate']:.2e}")
+            print(f"- Beam Direction: Azimuth {status['beam_direction'][0]:.1f}°, Elevation {status['beam_direction'][1]:.1f}°")

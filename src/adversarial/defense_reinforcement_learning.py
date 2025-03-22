@@ -9,8 +9,17 @@ import time
 from collections import deque
 from typing import Dict, List, Any, Tuple, Optional
 import logging
+import sys
+import os
 
-from src.adversarial.real_time_adversarial_learning import RealTimeAdversarialLearner
+# Fix import path for direct script execution
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
+try:
+    from src.adversarial.real_time_adversarial_learning import RealTimeAdversarialLearner
+except ImportError:
+    # Fallback for direct script execution
+    from real_time_adversarial_learning import RealTimeAdversarialLearner
 
 logger = logging.getLogger(__name__)
 

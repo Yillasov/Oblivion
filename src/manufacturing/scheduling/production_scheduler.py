@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import heapq
 
 from src.core.utils.logging_framework import get_logger
+from typing import Dict, List, Any
 from src.manufacturing.workflow.production_automator import ProductionAutomator
 
 logger = get_logger("production_scheduler")

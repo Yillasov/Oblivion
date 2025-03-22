@@ -169,3 +169,18 @@ class CommunicationIntegrator:
         })
         
         return optimization_result
+
+# Add this section at the end of the file
+if __name__ == "__main__":
+    print("Communication Integration Module")
+    print("This module provides a framework for managing multiple communication systems")
+    
+    # Example usage
+    integrator = CommunicationIntegrator()
+    
+    print("\nFunctionality provided by this module:")
+    print("- Register multiple communication systems")
+    print("- Initialize and manage communication links")
+    print("- Send and receive data through registered systems")
+    print("- Monitor system status and performance")
+    print("- Optimize resource allocation using neuromorphic computing")

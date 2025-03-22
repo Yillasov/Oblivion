@@ -364,3 +364,36 @@ class LaserOpticalSystem(CommunicationSystem):
             # Check if link is still viable
             if self._calculate_link_margin() <= 0:
                 self.terminate_link()
+
+# Add this section at the end of the file
+if __name__ == "__main__":
+    print("Laser Optical Communication System Module")
+    print("\nAvailable Atmospheric Conditions:")
+    for condition in AtmosphericCondition:
+        print(f"- {condition.name}: {condition.value}")
+    
+    # Example usage
+    print("\nExample Optical System Configuration:")
+    comm_specs = CommunicationSpecs(
+        weight=1.5,
+        volume={"length": 0.15, "width": 0.1, "height": 0.05},
+        power_requirements=25.0,
+        bandwidth=10000.0,  # 10 Gbps
+        range=100.0,        # 100 km
+        latency=0.5,        # 0.5 ms
+        encryption_level=9,
+        resilience_rating=0.7
+    )
+    
+    optical_specs = OpticalSystemSpecs(
+        laser_wavelength=1550.0,  # 1550 nm (infrared)
+        laser_power=0.5,          # 500 mW
+        beam_divergence=0.2,      # 0.2 mrad
+        receiver_aperture=10.0,   # 10 cm
+        modulation_scheme="PPM",
+        pointing_accuracy=5.0     # 5 μrad
+    )
+    
+    print(f"Laser Wavelength: {optical_specs.laser_wavelength} nm")
+    print(f"Laser Power: {optical_specs.laser_power} W")
+    print(f"Modulation Scheme: {optical_specs.modulation_scheme}")

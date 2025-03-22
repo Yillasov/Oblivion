@@ -114,3 +114,27 @@ class CommunicationSystem:
             "actual_latency": self.specs.latency,
             "power_consumption": self.specs.power_requirements
         }
+
+# Add this section at the end of the file
+if __name__ == "__main__":
+    print("Communication Base Module")
+    print("Available Communication Types:")
+    for comm_type in CommunicationType:
+        print(f"- {comm_type.name}: {comm_type.value}")
+    
+    # Example usage
+    example_specs = CommunicationSpecs(
+        weight=2.5,
+        volume={"length": 0.2, "width": 0.1, "height": 0.05},
+        power_requirements=15.0,
+        bandwidth=100.0,
+        range=50.0,
+        latency=5.0,
+        encryption_level=8,
+        resilience_rating=0.85
+    )
+    
+    print("\nExample Communication System Specs:")
+    print(f"Weight: {example_specs.weight} kg")
+    print(f"Bandwidth: {example_specs.bandwidth} Mbps")
+    print(f"Range: {example_specs.range} km")

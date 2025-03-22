@@ -625,3 +625,43 @@ class CognitiveRadioSystem(CommunicationSystem):
             }
         
         return {"optimized": False, "reason": "SNR too low for power optimization"}
+
+# Add this section at the end of the file
+if __name__ == "__main__":
+    print("Cognitive Radio System Module")
+    
+    print("\nAvailable Spectrum Sensing Modes:")
+    for mode in SpectrumSensingMode:
+        print(f"- {mode.name}: {mode.value}")
+    
+    # Example usage
+    print("\nExample Cognitive Radio Configuration:")
+    cr_specs = CognitiveRadioSpecs(
+        frequency_range=(400.0, 6000.0),  # 400 MHz to 6 GHz
+        bandwidth=40.0,                   # 40 MHz
+        sensing_sensitivity=-115.0,       # -115 dBm
+        adaptation_speed=25.0,            # 25 ms
+        transmit_power=10.0,              # 10 W
+        weight=2.8,                       # 2.8 kg
+        power_requirements=35.0,          # 35 W
+        encryption_level=256,
+        resilience_rating=0.95
+    )
+    
+    print(f"Frequency Range: {cr_specs.frequency_range[0]}-{cr_specs.frequency_range[1]} MHz")
+    print(f"Bandwidth: {cr_specs.bandwidth} MHz")
+    print(f"Sensing Sensitivity: {cr_specs.sensing_sensitivity} dBm")
+    print(f"Adaptation Speed: {cr_specs.adaptation_speed} ms")
+    print(f"Transmit Power: {cr_specs.transmit_power} W")
+    
+    # Create a system instance
+    print("\nInitializing cognitive radio system...")
+    cr_system = CognitiveRadioSystem(cr_specs)
+    success = cr_system.initialize()
+    print(f"Initialization {'successful' if success else 'failed'}")
+    
+    if success:
+        print("\nCurrent Radio Parameters:")
+        status = cr_system.get_status()
+        for key, value in status.items():
+            print(f"- {key}: {value}")

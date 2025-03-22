@@ -195,3 +195,53 @@ class QuantumCommunicationSystem(CommunicationSystem):
             self.status["error_rate"] = self.current_error_rate
         
         return self.status
+
+# Add this section at the end of the file
+if __name__ == "__main__":
+    print("Quantum Communication System Module")
+    
+    print("\nAvailable Quantum Protocols:")
+    for protocol in QuantumProtocol:
+        print(f"- {protocol.name}: {protocol.value}")
+    
+    # Example usage
+    print("\nExample Quantum Communication Configuration:")
+    quantum_specs = QuantumSpecs(
+        protocol=QuantumProtocol.BB84,
+        key_length=256,
+        qubit_count=8,
+        error_rate=0.01,
+        weight=0.5,
+        volume={"length": 0.1, "width": 0.1, "height": 0.05},
+        power_requirements=15.0,
+        bandwidth=0.01,  # 10 Kbps
+        range=10.0,      # 10 km
+        latency=0.1,     # 100 ms
+        encryption_level=10,
+        resilience_rating=0.99
+    )
+    
+    print(f"Protocol: {quantum_specs.protocol.value}")
+    print(f"Key Length: {quantum_specs.key_length} bits")
+    print(f"Qubit Count: {quantum_specs.qubit_count}")
+    print(f"Maximum Error Rate: {quantum_specs.error_rate}")
+    
+    # Create a system instance
+    print("\nInitializing quantum communication system...")
+    quantum_system = QuantumCommunicationSystem(quantum_specs)
+    success = quantum_system.initialize()
+    print(f"Initialization {'successful' if success else 'failed'}")
+    
+    if success:
+        # Establish quantum link
+        print("\nEstablishing quantum link...")
+        link_success = quantum_system.establish_link({"target_id": "quantum_receiver_1"})
+        print(f"Link establishment {'successful' if link_success else 'failed'}")
+        
+        if link_success:
+            # Get status
+            status = quantum_system.get_status()
+            print("\nQuantum Link Status:")
+            print(f"- Active: {status.get('active', False)}")
+            print(f"- Error Rate: {status.get('error_rate', 0.0):.6f}")
+            print(f"- Key Established: {status.get('established_key', False)}")

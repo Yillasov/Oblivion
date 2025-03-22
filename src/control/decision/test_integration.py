@@ -63,7 +63,9 @@ def main():
     print("Highest Priority Decision:", 
           decision_control.decision_system.get_highest_priority_decision(
               decision_control.decision_system.update(sensor_data, mission_params)
-          ).value)
+          ) if decision_control.decision_system.get_highest_priority_decision(
+              decision_control.decision_system.update(sensor_data, mission_params)
+          ) is not None else "No decision")
     
     print("\nControl Outputs:")
     for key, value in control_outputs.items():

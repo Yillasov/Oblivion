@@ -57,11 +57,11 @@ class AtmosphericPressureGuidance(NavigationSystem, NavigationDataProvider):
         """
         specs = NavigationSpecs(
             weight=0.3,  # kg
-            volume=0.0002,  # m³
-            power_requirements={"voltage": 5.0, "current": 0.1},  # V, A
+            volume={"value": 0.0002},  # m³
+            power_requirements=0.5,  # Watts
             drift_rate=0.0,  # m/s
             initialization_time=2.0,  # seconds
-            accuracy=50.0,  # m
+            accuracy={"value": 50.0},  # m
             update_rate=config.update_rate  # Hz
         )
         super().__init__(specs)

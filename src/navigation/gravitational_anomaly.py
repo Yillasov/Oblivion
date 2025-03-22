@@ -154,7 +154,7 @@ class GravitationalAnomalySensor:
             anomaly = GravityAnomaly(
                 position=position,
                 strength=anomaly_mgal,
-                gradient=gradient,
+                gradient=float(gradient),
                 anomaly_type=anomaly_type,
                 confidence=0.6
             )

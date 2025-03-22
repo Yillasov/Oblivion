@@ -210,7 +210,7 @@ class TerrainObstacleAvoidance:
             current_pos[2] + self.safety_margin * 2
         ])
         
-        if self.check_path(vertical_point, target):
+        if self.check_path(tuple(vertical_point), target):
             return vertical_point.tolist()
         
         # Try lateral avoidance for each obstacle

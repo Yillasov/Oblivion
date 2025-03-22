@@ -41,7 +41,7 @@ class TerrainFeature:
     elevation: float
     size: float  # approximate radius in meters
     steepness: float  # average slope in degrees
-    metadata: Dict[str, Any] = None
+    metadata: Dict[str, Any] = {}
 
 
 class TerrainDatabase:
@@ -266,7 +266,7 @@ class TerrainDatabase:
                         center_position=(x, y),
                         elevation=height_samples[i, j],
                         size=200.0,  # Approximate size
-                        steepness=avg_slope
+                        steepness=float(avg_slope)
                     )
                     
                     features.append(feature)

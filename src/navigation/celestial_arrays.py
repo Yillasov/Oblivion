@@ -56,11 +56,11 @@ class CelestialNavigationArrays(NavigationSystem, PositionProvider):
         """
         specs = NavigationSpecs(
             weight=1.8,  # kg
-            volume=0.005,  # m³
-            power_requirements={"voltage": 12.0, "current": 0.3},  # V, A
+            volume={"value": 0.005},  # m³
+            power_requirements=3.6,  # Watts (12V * 0.3A)
             drift_rate=0.0005,  # m/s
             initialization_time=15.0,  # seconds
-            accuracy=0.5,  # km
+            accuracy={"value": 0.5},  # km
             update_rate=0.5  # Hz
         )
         super().__init__(specs)

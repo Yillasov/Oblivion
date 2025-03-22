@@ -118,7 +118,7 @@ class MultiSensorFusionAI:
             
             # Resize neuromorphic grid if needed
             if neuro_grid.shape != std_grid.shape:
-                neuro_grid = self._resize_grid(neuro_grid, std_grid.shape)
+                neuro_grid = self._resize_grid(neuro_grid, (std_grid.shape[0], std_grid.shape[1]))
             
             # Weighted fusion
             fused_grid = 0.4 * std_grid + 0.6 * neuro_grid
@@ -128,7 +128,7 @@ class MultiSensorFusionAI:
             neuro_conf = np.array(neuro_result.get("confidence_map", np.zeros(self.config.grid_size)))
             
             if neuro_conf.shape != std_conf.shape:
-                neuro_conf = self._resize_grid(neuro_conf, std_conf.shape)
+                neuro_conf = self._resize_grid(neuro_conf, (std_conf.shape[0], std_conf.shape[1]))
             
             confidence_grid = np.maximum(std_conf, neuro_conf)
             

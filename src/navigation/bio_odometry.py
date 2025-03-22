@@ -56,11 +56,11 @@ class BioInspiredOdometry(NavigationSystem, PositionProvider):
         """
         specs = NavigationSpecs(
             weight=0.2,  # kg
-            volume=0.0001,  # m³
-            power_requirements={"voltage": 3.3, "current": 0.1},  # V, A
+            volume={"value": 0.0001},  # m³
+            power_requirements=0.33,  # Power consumption in Watts (V * A)
             drift_rate=0.05,  # m/s
             initialization_time=1.0,  # seconds
-            accuracy=2.0,  # m
+            accuracy={"value": 2.0},  # m
             update_rate=10.0  # Hz
         )
         super().__init__(specs)

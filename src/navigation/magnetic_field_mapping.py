@@ -106,7 +106,7 @@ class MagneticFieldMap:
         self.confidence_map[grid_y, grid_x] = min(1.0, self.confidence_map[grid_y, grid_x] + 0.1 * confidence)
         
         # Check for anomalies
-        self._detect_anomalies(position, magnetic_reading, field_strength)
+        self._detect_anomalies(position, magnetic_reading, float(field_strength))
     
     def _detect_anomalies(self, 
                          position: Tuple[float, float],
@@ -135,7 +135,7 @@ class MagneticFieldMap:
             anomaly = MagneticAnomaly(
                 position=position,
                 strength=field_strength,
-                gradient=deviation,
+                gradient=float(deviation),
                 anomaly_type=MagneticAnomalyType.UNKNOWN,
                 confidence=0.6
             )

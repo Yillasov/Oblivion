@@ -72,7 +72,7 @@ class PredictiveTerrainModeling:
     def predict_terrain(self, 
                        position: Tuple[float, float], 
                        heading: float,
-                       terrain_name: str = None) -> List[TerrainPrediction]:
+                       terrain_name: Optional[str] = None) -> List[TerrainPrediction]:
         """
         Predict terrain ahead of the aircraft.
         
@@ -204,7 +204,7 @@ class PredictiveTerrainModeling:
     def get_optimal_path(self, 
                         position: Tuple[float, float],
                         heading: float,
-                        terrain_name: str = None) -> Dict[str, Any]:
+                        terrain_name: Optional[str] = None) -> Dict[str, Any]:
         """
         Calculate optimal path through terrain.
         

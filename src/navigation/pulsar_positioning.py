@@ -67,11 +67,11 @@ class PulsarPositioningSystem(NavigationSystem, PositionProvider):
         """
         specs = NavigationSpecs(
             weight=5.2,  # kg
-            volume=0.015,  # m³
-            power_requirements={"voltage": 28.0, "current": 0.5},  # V, A
+            volume={"value": 0.015},  # m³
+            power_requirements=14.0,  # Power in Watts (V * A = 28.0V * 0.5A)
             drift_rate=0.001,  # m/s
             initialization_time=30.0,  # seconds
-            accuracy=0.1,  # km
+            accuracy={"value": 0.1},  # km
             update_rate=0.2  # Hz
         )
         super().__init__(specs)

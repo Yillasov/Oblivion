@@ -40,8 +40,29 @@ class NeuromorphicSystem:
         self.running = False
         self.timestep = 0
         self.neural_connections = {}
+        self.hardware_interfaces = {}  # Add this line to store hardware interfaces
         
         logger.info("Initialized neuromorphic system integration framework")
+    
+    # Add the missing method
+    def add_hardware_interface(self, name: str, interface: Any) -> bool:
+        """
+        Add a hardware interface to the system.
+        
+        Args:
+            name: Name of the hardware interface
+            interface: Hardware interface object
+            
+        Returns:
+            bool: True if the interface was added successfully
+        """
+        if name in self.hardware_interfaces:
+            logger.warning(f"Hardware interface '{name}' already exists")
+            return False
+        
+        self.hardware_interfaces[name] = interface
+        logger.info(f"Added hardware interface '{name}' to system")
+        return True
     
     def add_component(self, name: str, component: Any) -> bool:
         """Add a component to the system."""

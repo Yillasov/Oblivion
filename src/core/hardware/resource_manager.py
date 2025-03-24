@@ -341,3 +341,16 @@ def create_resource_manager(hardware_capabilities: Dict[str, Any]) -> ResourceMa
         ResourceManager: Hardware-specific resource manager
     """
     return ResourceManager(hardware_capabilities)
+
+# Add this import at the top of the file
+from src.core.hardware.dynamic_allocation import DynamicResourceAllocator
+
+# Add this method to the ResourceManager class
+def create_dynamic_allocator(self) -> DynamicResourceAllocator:
+    """
+    Create a dynamic resource allocator for this manager.
+    
+    Returns:
+        DynamicResourceAllocator: Dynamic resource allocator
+    """
+    return DynamicResourceAllocator(self)

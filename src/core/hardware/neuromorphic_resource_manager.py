@@ -2,11 +2,15 @@
 Centralized resource manager for neuromorphic hardware allocation.
 """
 
-from typing import Dict, List, Any, Optional, Set
+from typing import Dict, List, Any, Optional, Set, TYPE_CHECKING
 from enum import Enum, auto
 import logging
 import threading
 from dataclasses import dataclass, field
+
+# Only import type definitions to avoid circular imports
+if TYPE_CHECKING:
+    from src.core.hardware.resource_sharing_manager import ResourceSharingManager
 
 logger = logging.getLogger(__name__)
 
@@ -205,3 +209,14 @@ class NeuromorphicResourceManager:
         """
         with self._lock:
             return self.resource_pools.get(hardware_type)
+    
+    def get_sharing_manager(self) -> 'ResourceSharingManager':
+        """
+        Get the resource sharing manager.
+        
+        Returns:
+            ResourceSharingManager: Resource sharing manager instance
+        """
+        # Import here to avoid circular imports
+        from src.core.hardware.resource_sharing_manager import ResourceSharingManager
+        return ResourceSharingManager.get_instance()

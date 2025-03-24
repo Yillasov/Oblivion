@@ -12,6 +12,9 @@ import time
 from src.core.utils.logging_framework import get_logger
 from typing import Protocol, runtime_checkable
 
+from src.core.hardware.fault_tolerance import FaultToleranceManager, FaultType, FaultSeverity
+from src.core.hardware.hardware_monitor import NeuromorphicHardwareMonitor, HardwareMetricType
+
 @runtime_checkable
 class NeuromorphicInterface(Protocol):
     """Protocol defining the interface for neuromorphic hardware."""
@@ -30,21 +33,214 @@ class NeuromorphicSystem:
     learning algorithms, and data flow between components.
     """
     
-    def __init__(self, hardware_interface: Optional[NeuromorphicInterface] = None):
-        """Initialize the neuromorphic system."""
-        self.hardware = hardware_interface
-        self.components = {}
-        self.connections = {}
-        self.learning_algorithms = {}
-        self.data_buffers = {}
-        self.running = False
-        self.timestep = 0
-        self.neural_connections = {}
-        self.hardware_interfaces = {}  # Add this line to store hardware interfaces
-        
-        logger.info("Initialized neuromorphic system integration framework")
+    # Add these imports at the top of the file
+    from src.core.hardware.fault_tolerance import FaultToleranceManager, FaultType, FaultSeverity
+    from src.core.hardware.hardware_monitor import NeuromorphicHardwareMonitor, HardwareMetricType
     
-    # Add the missing method
+    # Add these attributes to the __init__ method
+    def __init__(self, hardware_interface: Optional[NeuromorphicInterface] = None):
+            """Initialize the neuromorphic system."""
+            self.hardware = hardware_interface
+            self.components = {}
+            self.connections = {}
+            self.learning_algorithms = {}
+            self.data_buffers = {}
+            self.running = False
+            self.timestep = 0
+            self.neural_connections = {}
+            self.hardware_interfaces = {}  # Add this line to store hardware interfaces
+            
+            # Fault tolerance components
+            self.fault_manager = FaultToleranceManager()
+            self.hardware_monitor = NeuromorphicHardwareMonitor(self.fault_manager)
+            self.fault_tolerance_enabled = True
+            
+            logger.info("Initialized neuromorphic system integration framework")
+    
+    # Add these methods to the NeuromorphicSystem class
+    def enable_fault_tolerance(self, enabled: bool = True):
+        """
+        Enable or disable fault tolerance mechanisms.
+        
+        Args:
+            enabled: Whether fault tolerance should be enabled
+        """
+        self.fault_tolerance_enabled = enabled
+        
+        if enabled:
+            # Start monitoring if system is running
+            if self.running:
+                self.hardware_monitor.start_monitoring()
+            logger.info("Fault tolerance mechanisms enabled")
+        else:
+            # Stop monitoring
+            self.hardware_monitor.stop_monitoring()
+            logger.info("Fault tolerance mechanisms disabled")
+    
+    def register_hardware_component(self, 
+                                hardware_id: str, 
+                                hardware_component: Any,
+                                hardware_type: str,
+                                is_critical: bool = False,
+                                redundancy_group: Optional[str] = None) -> bool:
+        """
+        Register hardware component for fault tolerance monitoring.
+        
+        Args:
+            hardware_id: Unique identifier for the hardware
+            hardware_component: The hardware component object
+            hardware_type: Type of hardware (e.g., "loihi", "spinnaker")
+            is_critical: Whether this is a critical component
+            redundancy_group: Optional group name for redundant components
+            
+        Returns:
+            bool: Success status
+        """
+        if not self.fault_tolerance_enabled:
+            logger.warning("Cannot register hardware: Fault tolerance is disabled")
+            return False
+        
+        # Register with hardware monitor
+        success = self.hardware_monitor.register_hardware(
+            hardware_id,
+            hardware_component,
+            hardware_type,
+            is_critical,
+            redundancy_group
+        )
+        
+        if success:
+            # Store in hardware interfaces
+            self.hardware_interfaces[hardware_id] = {
+                "component": hardware_component,
+                "type": hardware_type,
+                "is_critical": is_critical,
+                "redundancy_group": redundancy_group
+            }
+        
+        return success
+    
+    def report_hardware_metrics(self, hardware_id: str, metrics: Dict[str, float]) -> bool:
+        """
+        Report hardware metrics for monitoring.
+        
+        Args:
+            hardware_id: Hardware identifier
+            metrics: Dictionary of metric values (keys should match HardwareMetricType values)
+            
+        Returns:
+            bool: Success status
+        """
+        if not self.fault_tolerance_enabled:
+            return False
+        
+        # Convert string metric types to enum
+        enum_metrics = {}
+        for metric_name, value in metrics.items():
+            try:
+                metric_type = HardwareMetricType(metric_name)
+                enum_metrics[metric_type] = value
+            except ValueError:
+                logger.warning(f"Unknown metric type: {metric_name}")
+        
+        # Update metrics in hardware monitor
+        return self.hardware_monitor.update_metrics(hardware_id, enum_metrics)
+    
+    def report_hardware_fault(self, 
+                            hardware_id: str, 
+                            fault_type_str: str, 
+                            severity_str: str,
+                            details: Dict[str, Any] = {}) -> Optional[str]:
+        """
+        Report a hardware fault.
+        
+        Args:
+            hardware_id: Hardware identifier
+            fault_type_str: Type of fault (should match FaultType values)
+            severity_str: Severity level (should match FaultSeverity values)
+            details: Additional details about the fault
+            
+        Returns:
+            Optional[str]: Fault ID if successfully reported
+        """
+        if not self.fault_tolerance_enabled:
+            return None
+        
+        try:
+            fault_type = FaultType(fault_type_str)
+            severity = FaultSeverity(severity_str)
+        except ValueError:
+            logger.warning(f"Invalid fault type or severity: {fault_type_str}, {severity_str}")
+            return None
+        
+        return self.fault_manager.report_fault(
+            hardware_id,
+            fault_type,
+            severity,
+            details
+        )
+    
+    def resolve_hardware_fault(self, fault_id: str, resolution_strategy: str) -> bool:
+        """
+        Resolve a hardware fault.
+        
+        Args:
+            fault_id: Fault identifier
+            resolution_strategy: Description of how the fault was resolved
+            
+        Returns:
+            bool: Success status
+        """
+        if not self.fault_tolerance_enabled:
+            return False
+        
+        return self.fault_manager.resolve_fault(fault_id, resolution_strategy)
+    
+    def get_hardware_status(self, hardware_id: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Get hardware status information.
+        
+        Args:
+            hardware_id: Optional hardware identifier (if None, returns all hardware status)
+            
+        Returns:
+            Dict[str, Any]: Status information
+        """
+        if not self.fault_tolerance_enabled:
+            return {"error": "Fault tolerance is disabled"}
+        
+        if hardware_id:
+            return self.hardware_monitor.get_hardware_status(hardware_id)
+        else:
+            return {
+                "system_health": self.fault_manager.get_system_health(),
+                "hardware_status": self.hardware_monitor.get_all_hardware_status()
+            }
+    
+    # Modify the start and stop methods to include fault tolerance
+    def start(self):
+        """Start system execution."""
+        if not self.running:
+            self.running = True
+            
+            # Start fault tolerance monitoring if enabled
+            if self.fault_tolerance_enabled:
+                self.hardware_monitor.start_monitoring()
+            
+            logger.info("System execution started")
+            return True
+        return False
+    
+    def halt_execution(self):
+        """Stop system execution."""
+        self.running = False
+        
+        # Stop fault tolerance monitoring if enabled
+        if self.fault_tolerance_enabled:
+            self.hardware_monitor.stop_monitoring()
+        
+        logger.info("System execution stop requested")
+    
     def add_hardware_interface(self, name: str, interface: Any) -> bool:
         """
         Add a hardware interface to the system.

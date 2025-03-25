@@ -1,15 +1,23 @@
-name: Super-Linter
+name: Code Quality & Linting
 
 on:
   push:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
+  workflow_dispatch:
+
+# Cancel in-progress runs on new pushes
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   super-lint:
     name: Lint code base
     runs-on: ubuntu-latest
+    timeout-minutes: 15  # Prevent hanging jobs
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -17,48 +25,82 @@ jobs:
           # Full git history is needed to get a proper list of changed files
           fetch-depth: 0
 
-      - name: Cache linter results
+      - name: Cache linter data
         uses: actions/cache@v3
         with:
-          path: .cache/
-          key: ${{ runner.os }}-linter-${{ github.sha }}
+          path: |
+            ~/.cache/pip
+            .mypy_cache
+            .pytest_cache
+          key: ${{ runner.os }}-linters-${{ hashFiles('**/requirements*.txt') }}
           restore-keys: |
-            ${{ runner.os }}-linter-
+            ${{ runner.os }}-linters-
 
-      - name: Run Super-Linter
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v35
+        with:
+          files: |
+            **/*.py
+            **/*.js
+            **/*.ts
+            **/*.yaml
+            **/*.yml
+            **/*.json
+
+      - name: List changed files
+        run: |
+          echo "Changed files:"
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "$file"
+          done
+
+      - name: Run Super-Linter on changed files
+        if: steps.changed-files.outputs.any_changed == 'true'
         uses: github/super-linter@v4
         env:
-          DEFAULT_BRANCH: main
+          VALIDATE_ALL_CODEBASE: false
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Only scan changed files in PRs to speed up linting
-          VALIDATE_ALL_CODEBASE: ${{ github.event_name != 'pull_request' }}
-          # Enable file filtering
-          FILTER_REGEX_INCLUDE: .*src/.*
-          # Increase timeout for large files
-          LINTER_TIMEOUT: 600
-          # Enable caching
-          USE_FIND_ALGORITHM: true
-          # Parallel execution
-          ACTIONS_RUNNER_DEBUG: true
-          
-  unit-tests:
-    name: Run unit tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        
-      - name: Set up Python
-        uses: actions/setup-python@v4
+          DEFAULT_BRANCH: main
+          LINTER_RULES_PATH: /
+          PYTHON_BLACK_CONFIG_FILE: pyproject.toml
+          PYTHON_FLAKE8_CONFIG_FILE: .flake8
+          PYTHON_ISORT_CONFIG_FILE: pyproject.toml
+          PYTHON_MYPY_CONFIG_FILE: pyproject.toml
+          FILTER_REGEX_INCLUDE: ${{ steps.changed-files.outputs.all_changed_files }}
+          JAVASCRIPT_ES_CONFIG_FILE: .eslintrc.json
+          TYPESCRIPT_ES_CONFIG_FILE: .eslintrc.json
+          VALIDATE_PYTHON: true
+          VALIDATE_JAVASCRIPT_ES: true
+          VALIDATE_TYPESCRIPT_ES: true
+          VALIDATE_YAML: true
+          VALIDATE_JSON: true
+
+      - name: Run Super-Linter on entire codebase (weekly)
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && github.event.schedule == '0 0 * * 0')
+        uses: github/super-linter@v4
+        env:
+          VALIDATE_ALL_CODEBASE: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BRANCH: main
+          LINTER_RULES_PATH: /
+          PYTHON_BLACK_CONFIG_FILE: pyproject.toml
+          PYTHON_FLAKE8_CONFIG_FILE: .flake8
+          PYTHON_ISORT_CONFIG_FILE: pyproject.toml
+          PYTHON_MYPY_CONFIG_FILE: pyproject.toml
+          JAVASCRIPT_ES_CONFIG_FILE: .eslintrc.json
+          TYPESCRIPT_ES_CONFIG_FILE: .eslintrc.json
+          VALIDATE_PYTHON: true
+          VALIDATE_JAVASCRIPT_ES: true
+          VALIDATE_TYPESCRIPT_ES: true
+          VALIDATE_YAML: true
+          VALIDATE_JSON: true
+
+      - name: Upload linting report
+        if: always()
+        uses: actions/upload-artifact@v3
         with:
-          python-version: '3.10'
-          
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install pytest pytest-cov
-          
-      - name: Run tests
-        run: |
-          pytest tests/unit -v --cov=src
+          name: linter-report
+          path: |
+            super-linter.log
+            super-linter.report

@@ -19,7 +19,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -U sphinx sphinx-rtd-theme
-        pip install -U m2r2
+        pip install -U sphinx-markdown-builder
         pip list
     - name: Build documentation
       run: |

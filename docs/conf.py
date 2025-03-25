@@ -13,7 +13,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx',
     'sphinx.ext.autosectionlabel',
-    'm2r2',  # Using m2r2 for markdown support
+    'sphinx_markdown_builder',  # Using sphinx-markdown-builder
 ]
 
 templates_path = ['_templates']

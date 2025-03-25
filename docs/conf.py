@@ -13,7 +13,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx',
     'sphinx.ext.autosectionlabel',
-    'myst_parser',  # For Markdown support
+    'm2r2',  # Using m2r2 for markdown support
 ]
 
 templates_path = ['_templates']
@@ -24,10 +24,6 @@ html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 
 # -- Extension configuration -------------------------------------------------
-myst_enable_extensions = [
-    "colon_fence",
-    "deflist",
-]
 
 # Enable markdown files
 source_suffix = {

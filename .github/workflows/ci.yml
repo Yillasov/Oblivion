@@ -1,12 +1,39 @@
-on: [push, pull_request]
+name: Simple CI
+
+on:
+  push:
+    branches:
+      - main
 
 jobs:
-  python-lint:
+  build:
     runs-on: ubuntu-latest
-    name: CI workflow
     steps:
-    - name: checkout source repo
-      uses: actions/checkout@main
+      - uses: actions/checkout@v4
 
-    - name: linting
-      uses: programmingwithalex/pylinter@main
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Check for tests
+        id: check_tests
+        run: |
+          if [ $(find . -name 'test*.py' | wc -l) -gt 0 ]; then
+            echo "has_tests=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_tests=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run tests
+        if: steps.check_tests.outputs.has_tests == 'true'
+        run: python -m unittest discover
+
+      - name: No tests found
+        if: steps.check_tests.outputs.has_tests != 'true'
+        run: echo "No tests found, skipping test run"

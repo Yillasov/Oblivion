@@ -14,6 +14,7 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.autosectionlabel',
     'sphinx.ext.autosummary',
+    'myst_parser',  # Add MyST parser for markdown
 ]
 
 templates_path = ['_templates']
@@ -25,10 +26,19 @@ html_static_path = ['_static']
 
 # -- Extension configuration -------------------------------------------------
 
-# Enable markdown files
+# Enable markdown files with MyST parser
 source_suffix = {
     '.rst': 'restructuredtext',
     '.md': 'markdown',
 }
 
-# Markdown support is built into Sphinx 4.0+
+# MyST parser settings
+myst_enable_extensions = [
+    "colon_fence",
+    "deflist",
+]
+
+# Create _static directory if it doesn't exist
+import os
+if not os.path.exists(os.path.join(os.path.dirname(__file__), '_static')):
+    os.makedirs(os.path.join(os.path.dirname(__file__), '_static'))

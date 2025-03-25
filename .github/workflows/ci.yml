@@ -1,43 +1,19 @@
-name: Oblivion CI
+name: Test Project
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
-    
+    container:
+      image: node:20
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-        
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        pip install pytest pytest-cov flake8
-        
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 src --count --select=E9,F63,F7,F82 --show-source --statistics
-        
-    - name: Run unit tests
-      run: |
-        pytest tests/unit -v --cov=src
-        
-    - name: Run integration tests
-      run: |
-        pytest tests/integration -v
-        
-    - name: Generate test report
-      run: |
-        mkdir -p test_results
-        python -c "import json, datetime; print(json.dumps({'timestamp': datetime.datetime.now().isoformat(), 'status': 'completed'}))" > test_results/report.json
+      - uses: actions/checkout@v3
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm test
+      - run: npm run build

@@ -1,5 +1,5 @@
 """
-Simple Continuous Integration Pipeline
+Enhanced Continuous Integration Pipeline
 
 Provides automated testing and integration for neuromorphic components.
 """
@@ -11,7 +11,8 @@ import json
 import subprocess
 import argparse
 from datetime import datetime
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional, Tuple, Callable
+import concurrent.futures
 
 from src.core.utils.logging_framework import get_logger
 from src.core.testing.hil_framework import HILTestSuite, HILTestCase, HardwareSimulator
@@ -21,10 +22,10 @@ logger = get_logger("ci_pipeline")
 
 
 class CIPipeline:
-    """Simple continuous integration pipeline for neuromorphic testing."""
+    """Enhanced continuous integration pipeline for neuromorphic testing."""
     
     def __init__(self, 
-                 repo_root: str = "/Users/yessine/Oblivion",
+                 repo_root: Optional[str] = None,
                  results_dir: str = "test_results",
                  config_file: str = "ci_config.json"):
         """
@@ -35,6 +36,21 @@ class CIPipeline:
             results_dir: Directory to store test results
             config_file: Configuration file for CI pipeline
         """
+        # Determine repo root if not provided
+        if repo_root is None:
+            # Try to find the repo root by looking for .git directory
+            current_dir = os.getcwd()
+            while current_dir != os.path.dirname(current_dir):  # Stop at filesystem root
+                if os.path.exists(os.path.join(current_dir, '.git')):
+                    repo_root = current_dir
+                    break
+                current_dir = os.path.dirname(current_dir)
+            
+            if repo_root is None:
+                # Fallback to current directory
+                repo_root = os.getcwd()
+                logger.warning(f"Could not determine repository root, using current directory: {repo_root}")
+        
         self.repo_root = repo_root
         self.results_dir = os.path.join(repo_root, results_dir)
         self.config_file = os.path.join(repo_root, config_file)
@@ -52,13 +68,18 @@ class CIPipeline:
         # Pipeline stages
         self.stages = [
             self.stage_setup,
+            self.stage_lint,
             self.stage_unit_tests,
             self.stage_integration_tests,
             self.stage_hardware_tests,
             self.stage_report
         ]
         
-        logger.info("Initialized CI pipeline")
+        # Create timestamp for this run
+        self.run_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.run_results_dir = os.path.join(self.results_dir, self.run_timestamp)
+        
+        logger.info(f"Initialized CI pipeline in {repo_root}")
     
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration from file."""
@@ -67,6 +88,12 @@ class CIPipeline:
             "integration_test_dir": "tests/integration",
             "hardware_test_dir": "tests/hardware",
             "test_timeout": 300,
+            "parallel_tests": True,
+            "lint": {
+                "enabled": True,
+                "tool": "flake8",
+                "args": ["--count", "--select=E9,F63,F7,F82", "--show-source", "--statistics"]
+            },
             "hardware_simulator": {
                 "latency": 0.01,
                 "error_rate": 0.02,
@@ -82,6 +109,11 @@ class CIPipeline:
                     for key, value in default_config.items():
                         if key not in config:
                             config[key] = value
+                        elif isinstance(value, dict) and isinstance(config[key], dict):
+                            # Merge nested dictionaries
+                            for nested_key, nested_value in value.items():
+                                if nested_key not in config[key]:
+                                    config[key][nested_key] = nested_value
                 return config
             except Exception as e:
                 logger.error(f"Error loading config file: {str(e)}")
@@ -106,15 +138,61 @@ class CIPipeline:
                 if not os.path.exists(dir_path):
                     logger.warning(f"Test directory not found: {dir_path}")
             
-            # Create timestamp for this run
-            self.run_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            self.run_results_dir = os.path.join(self.results_dir, self.run_timestamp)
-            os.makedirs(self.run_results_dir)
+            # Create results directory for this run
+            if not os.path.exists(self.run_results_dir):
+                os.makedirs(self.run_results_dir)
+            
+            # Save configuration
+            with open(os.path.join(self.run_results_dir, "config.json"), 'w') as f:
+                json.dump(self.config, f, indent=2)
             
             return True
         except Exception as e:
             logger.error(f"Setup stage failed: {str(e)}")
             return False
+    
+    def stage_lint(self) -> bool:
+        """Lint stage: check code quality."""
+        if not self.config.get("lint", {}).get("enabled", False):
+            logger.info("Linting disabled, skipping")
+            return True
+        
+        logger.info("Running lint stage")
+        
+        try:
+            lint_config = self.config["lint"]
+            lint_tool = lint_config["tool"]
+            lint_args = lint_config["args"]
+            
+            if lint_tool == "flake8":
+                cmd = ["flake8", "src", "tests"] + lint_args
+            else:
+                logger.warning(f"Unsupported lint tool: {lint_tool}")
+                return True
+            
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=self.config["test_timeout"]
+            )
+            
+            # Save lint results
+            with open(os.path.join(self.run_results_dir, "lint.log"), 'w') as f:
+                f.write(result.stdout)
+                f.write(result.stderr)
+            
+            if result.returncode != 0:
+                logger.warning("Linting found issues")
+                # Don't fail the pipeline for lint issues
+                return True
+            
+            logger.info("Linting passed")
+            return True
+        except Exception as e:
+            logger.error(f"Lint stage failed: {str(e)}")
+            # Don't fail the pipeline for lint issues
+            return True
     
     def stage_unit_tests(self) -> bool:
         """Unit test stage: run unit tests."""
@@ -127,8 +205,10 @@ class CIPipeline:
         
         try:
             # Run unit tests using pytest
+            cmd = ["python", "-m", "pytest", unit_test_dir, "-v", "--cov=src"]
+            
             result = subprocess.run(
-                ["python", "-m", "pytest", unit_test_dir, "-v"],
+                cmd,
                 capture_output=True,
                 text=True,
                 timeout=self.config["test_timeout"]
@@ -160,8 +240,10 @@ class CIPipeline:
         
         try:
             # Run integration tests using pytest
+            cmd = ["python", "-m", "pytest", integration_test_dir, "-v"]
+            
             result = subprocess.run(
-                ["python", "-m", "pytest", integration_test_dir, "-v"],
+                cmd,
                 capture_output=True,
                 text=True,
                 timeout=self.config["test_timeout"]
@@ -186,33 +268,70 @@ class CIPipeline:
         """Hardware test stage: run hardware-in-the-loop tests."""
         logger.info("Running hardware test stage")
         
-        # Create hardware simulator
-        hw_config = self.config["hardware_simulator"]
-        hardware = HardwareSimulator(
-            latency=hw_config["latency"],
-            error_rate=hw_config["error_rate"],
-            noise_level=hw_config["noise_level"]
-        )
+        if not self.test_suites:
+            logger.warning("No hardware test suites defined, skipping")
+            return True
         
-        # Create neuromorphic system
-        system = NeuromorphicSystem(hardware_interface=hardware)
+        try:
+            # Create hardware simulator
+            hw_config = self.config["hardware_simulator"]
+            hardware = HardwareSimulator(
+                latency=hw_config["latency"],
+                error_rate=hw_config["error_rate"],
+                noise_level=hw_config["noise_level"]
+            )
+            
+            # Create neuromorphic system
+            system = NeuromorphicSystem(hardware_interface=hardware)
+            
+            # Run test suites
+            all_passed = True
+            
+            if self.config.get("parallel_tests", False):
+                # Run test suites in parallel
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future_to_suite = {
+                        executor.submit(self._run_test_suite, test_suite, system): test_suite
+                        for test_suite in self.test_suites
+                    }
+                    
+                    for future in concurrent.futures.as_completed(future_to_suite):
+                        test_suite = future_to_suite[future]
+                        try:
+                            suite_passed = future.result()
+                            if not suite_passed:
+                                all_passed = False
+                        except Exception as e:
+                            logger.error(f"Test suite {test_suite.name} failed with exception: {str(e)}")
+                            all_passed = False
+            else:
+                # Run test suites sequentially
+                for test_suite in self.test_suites:
+                    suite_passed = self._run_test_suite(test_suite, system)
+                    if not suite_passed:
+                        all_passed = False
+            
+            return all_passed
+        except Exception as e:
+            logger.error(f"Hardware test stage failed: {str(e)}")
+            return False
+    
+    def _run_test_suite(self, test_suite: HILTestSuite, system: NeuromorphicSystem) -> bool:
+        """Run a single test suite."""
+        logger.info(f"Running test suite: {test_suite.name}")
         
-        # Run test suites
+        # Run tests
+        results = test_suite.run(system)
+        
+        # Save results
+        test_suite.save_results(self.run_results_dir)
+        
+        # Check if all tests passed
         all_passed = True
-        for test_suite in self.test_suites:
-            logger.info(f"Running test suite: {test_suite.name}")
-            
-            # Run tests
-            results = test_suite.run(system)
-            
-            # Save results
-            test_suite.save_results(self.run_results_dir)
-            
-            # Check if all tests passed
-            for test_name, result in results.items():
-                if not result.get("passed", False):
-                    all_passed = False
-                    logger.error(f"Test failed: {test_name}")
+        for test_name, result in results.items():
+            if not result.get("passed", False):
+                all_passed = False
+                logger.error(f"Test failed: {test_name}")
         
         return all_passed
     
@@ -226,6 +345,7 @@ class CIPipeline:
                 "timestamp": self.run_timestamp,
                 "results_dir": self.run_results_dir,
                 "stages": {
+                    "lint": os.path.exists(os.path.join(self.run_results_dir, "lint.log")),
                     "unit_tests": os.path.exists(os.path.join(self.run_results_dir, "unit_tests.log")),
                     "integration_tests": os.path.exists(os.path.join(self.run_results_dir, "integration_tests.log")),
                     "hardware_tests": len(self.test_suites) > 0
@@ -241,21 +361,114 @@ class CIPipeline:
             with open(os.path.join(self.run_results_dir, "report.json"), 'w') as f:
                 json.dump(report, f, indent=2)
             
+            # Generate HTML report
+            self._generate_html_report(report)
+            
             logger.info(f"Test report saved to {os.path.join(self.run_results_dir, 'report.json')}")
             return True
         except Exception as e:
             logger.error(f"Report stage failed: {str(e)}")
             return False
     
-    def run(self) -> bool:
-        """Run the CI pipeline."""
+    def _generate_html_report(self, report: Dict[str, Any]) -> None:
+        """Generate HTML report from JSON report."""
+        try:
+            html_report = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>CI Pipeline Report - {report['timestamp']}</title>
+                <style>
+                    body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                    h1 {{ color: #333; }}
+                    .stage {{ margin-bottom: 20px; }}
+                    .stage-header {{ background-color: #f0f0f0; padding: 10px; }}
+                    .stage-content {{ padding: 10px; }}
+                    .passed {{ color: green; }}
+                    .failed {{ color: red; }}
+                </style>
+            </head>
+            <body>
+                <h1>CI Pipeline Report</h1>
+                <p>Timestamp: {report['timestamp']}</p>
+                <p>Results Directory: {report['results_dir']}</p>
+                
+                <div class="stage">
+                    <div class="stage-header">Stages</div>
+                    <div class="stage-content">
+                        <p>Lint: {'✅' if report['stages']['lint'] else '❌'}</p>
+                        <p>Unit Tests: {'✅' if report['stages']['unit_tests'] else '❌'}</p>
+                        <p>Integration Tests: {'✅' if report['stages']['integration_tests'] else '❌'}</p>
+                        <p>Hardware Tests: {'✅' if report['stages']['hardware_tests'] else '❌'}</p>
+                    </div>
+                </div>
+                
+                <div class="stage">
+                    <div class="stage-header">Test Suites</div>
+                    <div class="stage-content">
+            """
+            
+            for suite_name, suite_results in report.get('test_suites', {}).items():
+                html_report += f"""
+                        <h3>{suite_name}</h3>
+                        <ul>
+                """
+                
+                for test_name, test_result in suite_results.items():
+                    passed = test_result.get('passed', False)
+                    html_report += f"""
+                            <li class="{'passed' if passed else 'failed'}">
+                                {test_name}: {'Passed' if passed else 'Failed'}
+                            </li>
+                    """
+                
+                html_report += """
+                        </ul>
+                """
+            
+            html_report += """
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+            
+            with open(os.path.join(self.run_results_dir, "report.html"), 'w') as f:
+                f.write(html_report)
+            
+            logger.info(f"HTML report saved to {os.path.join(self.run_results_dir, 'report.html')}")
+        except Exception as e:
+            logger.error(f"Failed to generate HTML report: {str(e)}")
+    
+    def run(self, test_type: Optional[str] = None) -> bool:
+        """
+        Run the CI pipeline.
+        
+        Args:
+            test_type: Optional test type to run (unit, integration, hardware)
+                       If None, run all stages
+        
+        Returns:
+            True if all stages passed, False otherwise
+        """
         logger.info("Starting CI pipeline")
         
         start_time = time.time()
         success = True
         
+        # Filter stages based on test type
+        stages_to_run = []
+        if test_type == "unit":
+            stages_to_run = [self.stage_setup, self.stage_unit_tests, self.stage_report]
+        elif test_type == "integration":
+            stages_to_run = [self.stage_setup, self.stage_integration_tests, self.stage_report]
+        elif test_type == "hardware":
+            stages_to_run = [self.stage_setup, self.stage_hardware_tests, self.stage_report]
+        else:
+            stages_to_run = self.stages
+        
         # Run each stage
-        for stage in self.stages:
+        for stage in stages_to_run:
             stage_name = stage.__name__
             logger.info(f"Starting stage: {stage_name}")
             
@@ -281,10 +494,14 @@ def main():
     parser = argparse.ArgumentParser(description="Run CI pipeline")
     parser.add_argument("--config", help="Path to config file")
     parser.add_argument("--results-dir", help="Directory to store results")
+    parser.add_argument("--test-type", choices=["unit", "integration", "hardware"],
+                        help="Type of tests to run (unit, integration, hardware)")
+    parser.add_argument("--repo-root", help="Repository root directory")
     args = parser.parse_args()
     
     # Create CI pipeline
     ci = CIPipeline(
+        repo_root=args.repo_root,
         config_file=args.config if args.config else "ci_config.json",
         results_dir=args.results_dir if args.results_dir else "test_results"
     )
@@ -293,7 +510,7 @@ def main():
     # TODO: Load test suites from config or discover automatically
     
     # Run pipeline
-    success = ci.run()
+    success = ci.run(test_type=args.test_type)
     
     # Exit with appropriate code
     sys.exit(0 if success else 1)

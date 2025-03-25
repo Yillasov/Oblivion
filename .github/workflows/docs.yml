@@ -18,8 +18,8 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -U sphinx sphinx-rtd-theme
-        pip install -U sphinx-mdinclude
+        pip install -U sphinx==7.1.2 sphinx-rtd-theme
+        pip install -U commonmark
         pip list
     - name: Build documentation
       run: |

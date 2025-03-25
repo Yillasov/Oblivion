@@ -13,7 +13,6 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx',
     'sphinx.ext.autosectionlabel',
-    'sphinx_mdinclude',  # Using sphinx-mdinclude for markdown support
 ]
 
 templates_path = ['_templates']
@@ -25,8 +24,21 @@ html_static_path = ['_static']
 
 # -- Extension configuration -------------------------------------------------
 
-# Enable markdown files
+# Enable markdown files with CommonMark parser
 source_suffix = {
     '.rst': 'restructuredtext',
     '.md': 'markdown',
 }
+
+# Enable CommonMark parser for markdown
+import commonmark
+
+def docstring_processor(app, what, name, obj, options, lines):
+    md = '\n'.join(lines)
+    ast = commonmark.Parser().parse(md)
+    rst = commonmark.ReStructuredTextRenderer().render(ast)
+    lines.clear()
+    lines.extend(rst.splitlines())
+
+def setup(app):
+    app.connect('autodoc-process-docstring', docstring_processor)

@@ -46,7 +46,17 @@ class RobustComponent:
         
     def compute_control(self, state: np.ndarray) -> np.ndarray:
         """Compute robust control law."""
-        return -np.linalg.inv(self.R) @ state @ self.P
+        try:
+            # Check for singularity in R matrix
+            if np.linalg.det(self.R) < 1e-10:
+                # Add small regularization term
+                R_reg = self.R + 1e-6 * np.eye(self.R.shape[0])
+                return -np.linalg.solve(R_reg, state @ self.P)
+            return -np.linalg.solve(self.R, state @ self.P)  # More stable than using inv()
+        except np.linalg.LinAlgError as e:
+            logger.error(f"Linear algebra error in robust controller: {e}")
+            # Fallback to a safe control value
+            return np.zeros_like(state)
 
 
 @dataclass

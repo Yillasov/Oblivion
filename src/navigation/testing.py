@@ -117,11 +117,23 @@ class NavigationTestFramework:
             return {"error": "No test scenario configured"}
         
         # Initialize all systems
-        self.integrator.initialize()
+        try:
+            self.integrator.initialize()
+        except Exception as e:
+            logger.error(f"Failed to initialize navigation systems: {str(e)}")
+            return {"error": f"Initialization failed: {str(e)}", "success": False}
         
         # Activate all systems
+        active_systems = 0
         for system_id in self.integrator.navigation_systems:
-            self.integrator.activate_system(system_id)
+            try:
+                if self.integrator.activate_system(system_id):
+                    active_systems += 1
+            except Exception as e:
+                logger.error(f"Failed to activate system {system_id}: {str(e)}")
+        
+        if active_systems == 0:
+            return {"error": "No navigation systems could be activated", "success": False}
         
         # Generate test environment based on scenario
         environment = self._generate_test_environment()
@@ -160,8 +172,13 @@ class NavigationTestFramework:
             current_time = time.time()
             
             if current_time >= next_update:
-                # Update environment
-                environment = self._update_environment(environment, current_time - start_time)
+                # Update environment with timeout protection
+                try:
+                    environment = self._update_environment(environment, current_time - start_time)
+                except Exception as e:
+                    logger.error(f"Environment update failed: {str(e)}")
+                    results["overall"]["errors"] += 1
+                    # Use last known good environment
                 
                 # Inject errors if configured
                 if self.current_parameters.inject_errors:

@@ -235,7 +235,7 @@ class NavigationSDKBridge:
                 "event": "test_status",
                 "scenario": self.test_framework.current_scenario.value,
                 "elapsed_time": current_time - self.last_sync_time,
-                "systems": list(self.test_framework.integrator.navigation_systems.keys()),
+                "systems": list(self.test_framework.integrator.navigation_systems.keys()) if hasattr(self.test_framework.integrator, 'navigation_systems') else [],
                 "timestamp": current_time
             }
             
@@ -326,12 +326,15 @@ class SDKResourceProvider:
         Returns:
             Success status
         """
-        if requester not in self.allocations:
+        if not requester or requester not in self.allocations:
+            logger.warning(f"No resources allocated to requester: {requester}")
             return False
             
         # Return resources to pools
         for resource_type, amount in self.allocations[requester].items():
-            self.resource_pools[resource_type] += amount
+            if resource_type in self.resource_pools:  # Ensure resource type exists
+                self.resource_pools[resource_type] += amount
+                logger.debug(f"Released {amount} of {resource_type} from {requester}")
             
         # Clear allocations
         del self.allocations[requester]

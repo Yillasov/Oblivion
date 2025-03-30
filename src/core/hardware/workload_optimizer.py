@@ -321,15 +321,23 @@ class WorkloadOptimizer:
         Returns:
             Dict[str, Any]: Fixed configuration
         """
+        if not isinstance(config, dict):
+            logger.error("Invalid configuration format")
+            return {}
+            
         fixed_config = config.copy()
+        
+        # Ensure neuron_params exists to avoid KeyError
+        if "neuron_params" not in fixed_config:
+            fixed_config["neuron_params"] = {}
         
         for issue in issues:
             # Fix weight precision issues
             if "weight_precision" in issue:
-                if self.hardware_type == "truenorth" and config.get("neuron_params", {}).get("weight_precision", 0) > 1:
+                if self.hardware_type == "truenorth" and fixed_config.get("neuron_params", {}).get("weight_precision", 0) > 1:
                     logger.info("Fixing TrueNorth weight precision (setting to 1)")
                     fixed_config["neuron_params"]["weight_precision"] = 1
-                elif self.hardware_type == "loihi" and config.get("neuron_params", {}).get("weight_precision", 0) > 8:
+                elif self.hardware_type == "loihi" and fixed_config.get("neuron_params", {}).get("weight_precision", 0) > 8:
                     logger.info("Fixing Loihi weight precision (setting to 8)")
                     fixed_config["neuron_params"]["weight_precision"] = 8
             

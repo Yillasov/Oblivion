@@ -136,42 +136,50 @@ class SensorSDKConnector:
             return False
     
     def update_sensors(self, time_now: float, platform_state: Dict[str, Any], 
-                      environment: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+                  environment: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
         """
         Update all sensors with new platform and environment data.
         
         This method can be called from the main SDK loop to update sensor readings.
         """
         if not self.sim_env or not self.sim_env.sensor_manager:
+            logger.warning("Simulation environment or sensor manager not initialized")
             return {}
             
-        # Update all sensors
-        raw_data = self.sim_env.sensor_manager.update_all(
-            time_now, platform_state, environment
-        )
-        
-        # Process sensor data
-        for sensor_name, sensor_data in raw_data.items():
-            if sensor_name in self.sim_env.signal_processors:
-                processor = self.sim_env.signal_processors[sensor_name]
-                self.processor_cache[sensor_name] = processor.process(
-                    np.array(sensor_data.get("data", []))
-                )
-        
-        # Update fusion system
-        processed_data = {}
-        for sensor_name, processed in self.processor_cache.items():
-            processed_data[sensor_name] = {
-                "processed": processed,
-                "original": raw_data.get(sensor_name, {})
-            }
+        try:
+            # Update all sensors
+            raw_data = self.sim_env.sensor_manager.update_all(
+                time_now, platform_state, environment
+            )
             
-        fusion_data = self.sim_env.fusion_system.process(processed_data, time_now)
-        
-        # Cache the update time
-        self.last_update_time = time_now
-        
-        return raw_data
+            # Process sensor data
+            for sensor_name, sensor_data in raw_data.items():
+                if sensor_name in self.sim_env.signal_processors:
+                    processor = self.sim_env.signal_processors[sensor_name]
+                    try:
+                        data_array = np.array(sensor_data.get("data", []))
+                        if data_array.size > 0:  # Check if data is not empty
+                            self.processor_cache[sensor_name] = processor.process(data_array)
+                    except Exception as e:
+                        logger.error(f"Error processing data for sensor {sensor_name}: {e}")
+            
+            # Update fusion system
+            processed_data = {}
+            for sensor_name, processed in self.processor_cache.items():
+                processed_data[sensor_name] = {
+                    "processed": processed,
+                    "original": raw_data.get(sensor_name, {})
+                }
+                
+            fusion_data = self.sim_env.fusion_system.process(processed_data, time_now)
+            
+            # Cache the update time
+            self.last_update_time = time_now
+            
+            return raw_data
+        except Exception as e:
+            logger.error(f"Error updating sensors: {e}")
+            return {}
 
 
 # Create a singleton instance for easy access

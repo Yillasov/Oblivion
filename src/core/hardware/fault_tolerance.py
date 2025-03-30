@@ -232,13 +232,21 @@ class FaultToleranceManager:
     def _handle_critical_fault(self, fault_id: str, fault_event: FaultEvent):
         """Handle a critical fault."""
         component_id = fault_event.component_id
+        
+        # Verify component exists before proceeding
+        if component_id not in self.components:
+            logger.error(f"Cannot handle fault for unknown component: {component_id}")
+            return
+            
         component_info = self.components[component_id]
         
         # Check if component is in a redundancy group
         redundancy_group = component_info.get("redundancy_group")
         if redundancy_group and redundancy_group in self.redundancy_groups:
             # Activate redundant component
-            self._activate_redundant_component(component_id, redundancy_group)
+            success = self._activate_redundant_component(component_id, redundancy_group)
+            if not success:
+                logger.warning(f"Failed to activate redundant component for {component_id}")
         
         # Apply degradation strategy if available
         if component_id in self.degradation_strategies:
@@ -251,7 +259,15 @@ class FaultToleranceManager:
         # Mark component as inactive if critical fault
         if fault_event.severity == FaultSeverity.CRITICAL:
             component_info["active"] = False
+            # Notify system about critical component failure
+            self._notify_critical_component_failure(component_id)
             logger.warning(f"Component {component_id} marked as inactive due to critical fault")
+    
+    def _notify_critical_component_failure(self, component_id: str) -> None:
+        """Notify system about critical component failure."""
+        if component_id in self.critical_components:
+            logger.critical(f"Critical component failure: {component_id}")
+            # Implement notification mechanism (e.g., event system)
     
     def _handle_non_critical_fault(self, fault_id: str, fault_event: FaultEvent):
         """Handle a non-critical fault."""

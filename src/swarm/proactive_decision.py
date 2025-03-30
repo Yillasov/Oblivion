@@ -35,28 +35,50 @@ class ProactiveDecisionMaker:
         Returns:
             Situation assessment with threat probabilities
         """
-        # Predict future target position
-        future_position = self.prediction_model.predict(current_data)
+        if not current_data:
+            logger.warning("Empty data provided to situation evaluator")
+            return {
+                'predicted_position': np.zeros(3),
+                'time_to_intercept': float('inf'),
+                'threat_level': 0.0,
+                'distance': float('inf'),
+                'intercept_vector': np.zeros(3),
+                'error': 'No data provided'
+            }
         
-        # Calculate distance to predicted position
-        current_position = np.array(current_data.get('own_position', [0, 0, 0]))
-        distance_vector = future_position - current_position
-        distance = np.linalg.norm(distance_vector)
-        
-        # Calculate time to intercept
-        own_speed = current_data.get('own_speed', 0.1)
-        time_to_intercept = distance / max(own_speed, 0.1)
-        
-        # Assess threat level
-        threat_level = self._calculate_threat_level(current_data, future_position)
-        
-        return {
-            'predicted_position': future_position,
-            'time_to_intercept': time_to_intercept,
-            'threat_level': threat_level,
-            'distance': distance,
-            'intercept_vector': distance_vector / max(distance, 0.1)
-        }
+        try:
+            # Predict future target position
+            future_position = self.prediction_model.predict(current_data)
+            
+            # Calculate distance to predicted position
+            current_position = np.array(current_data.get('own_position', [0, 0, 0]))
+            distance_vector = future_position - current_position
+            distance = np.linalg.norm(distance_vector)
+            
+            # Calculate time to intercept
+            own_speed = current_data.get('own_speed', 0.1)
+            time_to_intercept = distance / max(own_speed, 0.1)
+            
+            # Assess threat level
+            threat_level = self._calculate_threat_level(current_data, future_position)
+            
+            return {
+                'predicted_position': future_position.tolist() if isinstance(future_position, np.ndarray) else future_position,
+                'time_to_intercept': time_to_intercept,
+                'threat_level': threat_level,
+                'distance': distance,
+                'intercept_vector': (distance_vector / max(distance, 0.1)).tolist() if isinstance(distance_vector, np.ndarray) else distance_vector
+            }
+        except Exception as e:
+            logger.error(f"Error evaluating situation: {str(e)}")
+            return {
+                'error': f"Evaluation failed: {str(e)}",
+                'predicted_position': np.zeros(3).tolist(),
+                'time_to_intercept': float('inf'),
+                'threat_level': 0.0,
+                'distance': float('inf'),
+                'intercept_vector': np.zeros(3).tolist()
+            }
     
     def _calculate_threat_level(self, current_data: Dict[str, Any], 
                                predicted_position: np.ndarray) -> float:

@@ -133,7 +133,10 @@ class ProductionScheduler:
             # Try to move task earlier if resources allow
             for j in range(i-1, -1, -1):
                 earlier_task = self.schedule[j]
-                if (not set(task.dependencies) & set(earlier_task.dependencies) and
+                # Use set intersection for dependency check
+                task_deps = set(task.dependencies)
+                earlier_deps = set(earlier_task.dependencies)
+                if (not task_deps.intersection(earlier_deps) and
                     self._can_run_parallel(task, earlier_task)):
                     task.start_time = earlier_task.start_time
                     break

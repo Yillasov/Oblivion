@@ -72,11 +72,17 @@ class NeuromorphicHardwareInterface:
     def initialize(self) -> bool:
         """Initialize the hardware with the current configuration."""
         if not self.hardware:
+            logger.error(f"Unsupported hardware type: {self.hardware_type}")
             raise HardwareInitializationError(f"Unsupported hardware type: {self.hardware_type}")
         
-        result = self.hardware.initialize(self.config)
-        self.initialized = result
-        return result
+        try:
+            result = self.hardware.initialize(self.config)
+            self.initialized = result
+            return result
+        except Exception as e:
+            logger.error(f"Hardware initialization failed: {str(e)}")
+            self.initialized = False
+            raise HardwareInitializationError(f"Initialization failed: {str(e)}") from e
     
     def shutdown(self) -> bool:
         """Safely shutdown the hardware."""

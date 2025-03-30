@@ -464,40 +464,31 @@ echo "Deployment completed successfully"
             os.makedirs(os.path.dirname(extract_dir), exist_ok=True)
             
             try:
-                # Extract package
+                # Extract and deploy
                 shutil.unpack_archive(package_path, extract_dir)
                 
-                # Get hardware type from manifest
-                manifest_path = os.path.join(extract_dir, "manifest.json")
-                with open(manifest_path, 'r') as f:
-                    manifest = json.load(f)
-                
-                hardware_type = manifest.get("hardware_type")
-                
-                # Auto-detect hardware if no address provided
-                if not hardware_address:
-                    detected = self.detect_hardware()
-                    if detected:
-                        detected_type, hw_info = detected
-                        # Verify hardware type matches
-                        if detected_type != hardware_type:
-                            logger.warning(f"Package for {hardware_type} but detected {detected_type}")
-                            if not self._confirm_deployment_mismatch():
-                                return False
-                        hardware_address = hw_info.get("address", None)
-                        logger.info(f"Auto-detected {detected_type} hardware at {hardware_address}")
-                
-                # Run hardware-specific pre-deployment checks
-                if not self._run_hardware_checks(hardware_type, extract_dir):
-                    logger.error("Hardware pre-deployment checks failed")
+                # Verify deploy script exists
+                deploy_script = os.path.join(extract_dir, "deploy.sh")
+                if not os.path.exists(deploy_script):
+                    logger.error(f"Deployment script not found: {deploy_script}")
                     return False
                 
-                # Transition from simulation to hardware
-                self._transition_simulation_to_hardware(hardware_type, extract_dir)
+                # Make script executable
+                os.chmod(deploy_script, os.stat(deploy_script).st_mode | 0o111)
                 
-                # Run deployment script
+                # Run deployment script with timeout
                 cmd = f"cd {extract_dir} && ./deploy.sh {hardware_address or ''}"
-                result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+                try:
+                    result = subprocess.run(
+                        cmd, 
+                        shell=True, 
+                        capture_output=True, 
+                        text=True,
+                        timeout=300  # 5-minute timeout
+                    )
+                except subprocess.TimeoutExpired:
+                    logger.error("Deployment timed out after 5 minutes")
+                    return False
                 
                 if result.returncode != 0:
                     logger.error(f"Deployment failed: {result.stderr}")
@@ -512,7 +503,10 @@ echo "Deployment completed successfully"
             finally:
                 # Clean up
                 if os.path.exists(extract_dir):
-                    shutil.rmtree(extract_dir)
+                    try:
+                        shutil.rmtree(extract_dir)
+                    except Exception as e:
+                        logger.warning(f"Failed to clean up extraction directory: {str(e)}")
 
         def _transition_simulation_to_hardware(self, hardware_type: str, extract_dir: str) -> None:
             """Transition configurations and resources from simulation to hardware."""

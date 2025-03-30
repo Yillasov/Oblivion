@@ -6,7 +6,7 @@ Provides testing capabilities for UCAV prototypes.
 
 import time
 import os
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional, Tuple, Callable
 import numpy as np
 import json
 
@@ -14,7 +14,8 @@ from src.core.utils.logging_framework import get_logger
 from src.core.integration.neuromorphic_system import NeuromorphicSystem
 from src.manufacturing.quality.quality_inspector import QualityInspector
 from src.simulation.models.ucav_geometry import UCAVGeometry
-from src.manufacturing.testing.prototype_hil import PrototypeHILTestSuite
+from src.manufacturing.testing.prototype_hil import PrototypeHILTestSuite, PrototypeHILTest
+from src.core.utils.error_handling import handle_errors
 
 logger = get_logger("prototype_testing")
 
@@ -236,24 +237,24 @@ class PrototypeTester:
         """
         logger.info("Running aerodynamic tests")
         
-        results = {}
+        # Initialize system if needed
+        self.system.initialize()
         
-        # Run aerodynamic tests
-        if "wind_tunnel_settings" in config:
-            results["aero_testing"] = self._run_aero_tests(prototype, config["wind_tunnel_settings"])
-            
-        # Run structural tests
-        if "structural_settings" in config:
-            results["structural_testing"] = self._run_structural_tests(prototype, config["structural_settings"])
-            
-        # Run thermal tests
-        if "thermal_settings" in config:
-            results["thermal_testing"] = self._run_thermal_tests(prototype, config["thermal_settings"])
-            
-        # Run analysis
-        results["analysis"] = self._analyze_test_results(results)
+        # Prepare test data
+        test_data = {
+            "computation": "aero_testing",
+            "prototype": prototype.export_for_cfd(),  # Use export_for_cfd instead of to_dict
+            "max_speed": config.get("max_speed", 1.2),
+            "test_points": config.get("test_points", 5),
+            "angle_of_attack_range": config.get("angle_of_attack_range", [0, 15])
+        }
         
-        self.test_results = results
+        # Process data through neuromorphic system
+        results = self.system.process_data(test_data)
+        
+        # Cleanup
+        self.system.cleanup()
+        
         return results
     
     def _run_structural_tests(self, prototype: UCAVGeometry, config: Dict[str, Any]) -> Dict[str, Any]:
@@ -269,20 +270,23 @@ class PrototypeTester:
         """
         logger.info("Running structural tests")
         
-        results = {}
+        # Initialize system if needed
+        self.system.initialize()
         
-        # Run structural tests
-        if "structural_settings" in config:
-            results["structural_testing"] = self._run_structural_tests(prototype, config["structural_settings"])
-            
-        # Run thermal tests
-        if "thermal_settings" in config:
-            results["thermal_testing"] = self._run_thermal_tests(prototype, config["thermal_settings"])
-            
-        # Run analysis
-        results["analysis"] = self._analyze_test_results(results)
+        # Prepare test data
+        test_data = {
+            "computation": "structural_testing",
+            "prototype": prototype.export_for_cfd(),  # Use export_for_cfd instead of to_dict
+            "max_load": config.get("max_load", 4.0),
+            "test_points": config.get("test_points", 24)
+        }
         
-        self.test_results = results
+        # Process data through neuromorphic system
+        results = self.system.process_data(test_data)
+        
+        # Cleanup
+        self.system.cleanup()
+        
         return results
     
     def _run_thermal_tests(self, prototype: UCAVGeometry, config: Dict[str, Any]) -> Dict[str, Any]:
@@ -298,16 +302,24 @@ class PrototypeTester:
         """
         logger.info("Running thermal tests")
         
-        results = {}
+        # Initialize system if needed
+        self.system.initialize()
         
-        # Run thermal tests
-        if "thermal_settings" in config:
-            results["thermal_testing"] = self._run_thermal_tests(prototype, config["thermal_settings"])
-            
-        # Run analysis
-        results["analysis"] = self._analyze_test_results(results)
+        # Prepare test data
+        test_data = {
+            "computation": "thermal_testing",
+            "prototype": prototype.export_for_cfd(),  # Use export_for_cfd instead of to_dict
+            "min_temp": config.get("min_temp", -40),
+            "max_temp": config.get("max_temp", 85),
+            "cycles": config.get("cycles", 10)
+        }
         
-        self.test_results = results
+        # Process data through neuromorphic system
+        results = self.system.process_data(test_data)
+        
+        # Cleanup
+        self.system.cleanup()
+        
         return results
     
     def _analyze_test_results(self, results: Dict[str, Any]) -> Dict[str, Any]:
@@ -318,14 +330,64 @@ class PrototypeTester:
             results: Test results
             
         Returns:
-            Dict[str, Any]: Test results
+            Dict[str, Any]: Analysis results
         """
-        logger.info("Analyze test results")
+        logger.info("Analyzing test results")
         
-        results = {}
+        # Initialize system if needed
+        self.system.initialize()
         
-        # Run analysis
-        results["analysis"] = self._analyze_test_results(results)
+        # Extract relevant metrics from each test type
+        analysis_metrics = {}
         
-        self.test_results = results
-        return results
+        # Process aerodynamic test results
+        if "aero_testing" in results:
+            aero_results = results["aero_testing"]
+            analysis_metrics["aerodynamic"] = {
+                "lift_to_drag_ratio": aero_results.get("lift_to_drag_ratio", 0),
+                "stall_angle": aero_results.get("stall_angle", 0),
+                "max_speed": aero_results.get("max_speed", 0),
+                "passed": aero_results.get("passed", False)
+            }
+        
+        # Process structural test results
+        if "structural_testing" in results:
+            struct_results = results["structural_testing"]
+            analysis_metrics["structural"] = {
+                "max_stress": struct_results.get("max_stress", 0),
+                "safety_factor": struct_results.get("safety_factor", 0),
+                "critical_points": struct_results.get("critical_points", []),
+                "passed": struct_results.get("passed", False)
+            }
+        
+        # Process thermal test results
+        if "thermal_testing" in results:
+            thermal_results = results["thermal_testing"]
+            analysis_metrics["thermal"] = {
+                "max_temp_deformation": thermal_results.get("max_temp_deformation", 0),
+                "thermal_cycles_completed": thermal_results.get("thermal_cycles_completed", 0),
+                "critical_points": thermal_results.get("critical_points", []),
+                "passed": thermal_results.get("passed", False)
+            }
+        
+        # Prepare analysis data for neuromorphic processing
+        analysis_data = {
+            "computation": "test_analysis",
+            "test_metrics": analysis_metrics
+        }
+        
+        # Process data through neuromorphic system
+        analysis_results = self.system.process_data(analysis_data)
+        
+        # Add overall status
+        all_passed = all(
+            metrics.get("passed", False) 
+            for test_type, metrics in analysis_metrics.items()
+        )
+        
+        analysis_results["status"] = "completed" if all_passed else "partial"
+        
+        # Cleanup
+        self.system.cleanup()
+        
+        return analysis_results

@@ -12,7 +12,11 @@ import logging
 from src.core.integration.neuromorphic_system import NeuromorphicSystem
 from src.swarm.communication import SwarmCommunicationProtocol, CollectiveDecisionMaking, MessageType
 
-logger = logging.getLogger(__name__)
+# Replace standard logging with the project's custom logging framework
+from src.core.utils.logging_framework import get_logger
+
+# Use the custom logger
+logger = get_logger("swarm_intelligence")
 
 class SwarmAgent:
     """Represents a single UCAV agent in a swarm."""
@@ -96,21 +100,25 @@ class SwarmAgent:
     
     def update(self, delta_time: float) -> None:
         """Update agent position based on current velocity and acceleration."""
-        self.velocity += self.acceleration * delta_time
-        
-        # Limit speed to max_speed
-        speed = np.linalg.norm(self.velocity)
-        if speed > self.max_speed:
-            self.velocity = self.velocity * (self.max_speed / speed)
+        # Add error handling for position updates
+        try:
+            self.velocity += self.acceleration * delta_time
             
-        self.position += self.velocity * delta_time
-        self.acceleration = np.zeros(3)
-        
-        # Broadcast position to neighbors
-        self.comm_protocol.broadcast_position(self.position, self.velocity)
-        
-        # Update communication protocol
-        self.comm_protocol.update(self.neighbors)
+            # Limit speed to max_speed
+            speed = np.linalg.norm(self.velocity)
+            if speed > self.max_speed:
+                self.velocity = self.velocity * (self.max_speed / speed)
+                
+            self.position += self.velocity * delta_time
+            self.acceleration = np.zeros(3)
+            
+            # Broadcast position to neighbors
+            self.comm_protocol.broadcast_position(self.position, self.velocity)
+            
+            # Update communication protocol
+            self.comm_protocol.update(self.neighbors)
+        except Exception as e:
+            logger.error(f"Error updating agent {self.agent_id}: {str(e)}")
 
 
 class SwarmIntelligence:
@@ -256,3 +264,34 @@ class SwarmIntelligence:
         objective_force = desired_velocity - agent.velocity
         
         return objective_force
+
+
+# Add factory method to make the classes more accessible
+def create_swarm_intelligence(config: Dict[str, Any]) -> SwarmIntelligence:
+    """
+    Factory method to create a SwarmIntelligence instance.
+    
+    Args:
+        config: Configuration dictionary
+        
+    Returns:
+        SwarmIntelligence: Configured swarm intelligence instance
+    """
+    return SwarmIntelligence(config)
+
+def create_swarm_agent(agent_id: str, position: np.ndarray, 
+                      capabilities: Dict[str, Any], 
+                      neuromorphic_system: Optional[NeuromorphicSystem] = None) -> SwarmAgent:
+    """
+    Factory method to create a SwarmAgent instance.
+    
+    Args:
+        agent_id: Unique agent identifier
+        position: Initial position
+        capabilities: Agent capabilities
+        neuromorphic_system: Optional neuromorphic system
+        
+    Returns:
+        SwarmAgent: Configured swarm agent
+    """
+    return SwarmAgent(agent_id, position, capabilities, neuromorphic_system)

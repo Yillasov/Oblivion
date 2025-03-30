@@ -408,23 +408,25 @@ class NeuromorphicSystem:
                 if hasattr(algorithm, 'update_weights'):
                     # Get component outputs for this algorithm
                     algorithm_data = {
-                        comp_name: self.data_buffers[comp_name].get("output", {})
+                        comp_name: self.data_buffers.get(comp_name, {}).get("output", {})
                         for comp_name in self.components
-                        if comp_name in self.data_buffers
                     }
                     
                     # Record activity if supported
                     if hasattr(algorithm, 'record_activity'):
                         for comp_name, data in algorithm_data.items():
-                            if hasattr(data, 'items'):
+                            if isinstance(data, dict):  # Ensure data is a dictionary before iterating
                                 for neuron_id, activity in data.items():
                                     algorithm.record_activity(neuron_id, activity)
                     
                     # Update weights if connections exist
                     if self.neural_connections:
-                        self.neural_connections = algorithm.update_weights(
+                        updated_connections = algorithm.update_weights(
                             self.neural_connections, self.timestep
                         )
+                        # Verify the returned connections are valid before assigning
+                        if updated_connections is not None:
+                            self.neural_connections = updated_connections
             except Exception as e:
                 logger.error(f"Error updating algorithm '{name}': {str(e)}")
     

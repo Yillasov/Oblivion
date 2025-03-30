@@ -5,16 +5,15 @@ Provides centralized management for swarm operations while enabling decentralize
 
 import numpy as np
 import time
-from typing import Dict, List, Any, Optional
-import logging
 import threading
+from typing import Dict, List, Any, Optional
 
-# Fix the import path for NeuromorphicSystem
 from src.core.integration.neuromorphic_system import NeuromorphicSystem
+from src.core.utils.logging_framework import get_logger
 from src.swarm.intelligence import SwarmAgent, SwarmIntelligence
 from src.swarm.communication import MessageType
 
-logger = logging.getLogger(__name__)
+logger = get_logger("swarm_coordinator")
 
 class SwarmCoordinator:
     """Coordinates swarm operations for UCAV platforms."""

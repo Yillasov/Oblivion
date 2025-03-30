@@ -46,6 +46,7 @@ class PropulsionManufacturingWorkflow:
             
         self.systems[system_id] = system
         self.stages[system_id] = ManufacturingStage.DESIGN
+        # Initialize with proper typing for dictionary comprehension
         self.progress[system_id] = {stage: 0.0 for stage in ManufacturingStage}
         self.metrics[system_id] = {"quality": 0.0, "efficiency": 0.0}
         self.history[system_id] = []

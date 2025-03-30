@@ -40,11 +40,15 @@ class CIPipeline:
         if repo_root is None:
             # Try to find the repo root by looking for .git directory
             current_dir = os.getcwd()
-            while current_dir != os.path.dirname(current_dir):  # Stop at filesystem root
+            max_depth = 10  # Prevent infinite loop
+            depth = 0
+            
+            while current_dir != os.path.dirname(current_dir) and depth < max_depth:  # Stop at filesystem root or max depth
                 if os.path.exists(os.path.join(current_dir, '.git')):
                     repo_root = current_dir
                     break
                 current_dir = os.path.dirname(current_dir)
+                depth += 1
             
             if repo_root is None:
                 # Fallback to current directory
@@ -56,8 +60,15 @@ class CIPipeline:
         self.config_file = os.path.join(repo_root, config_file)
         
         # Create results directory if it doesn't exist
-        if not os.path.exists(self.results_dir):
-            os.makedirs(self.results_dir)
+        try:
+            if not os.path.exists(self.results_dir):
+                os.makedirs(self.results_dir)
+        except Exception as e:
+            logger.error(f"Failed to create results directory: {str(e)}")
+            # Fallback to a temporary directory
+            import tempfile
+            self.results_dir = tempfile.mkdtemp(prefix="ci_results_")
+            logger.warning(f"Using temporary directory for results: {self.results_dir}")
         
         # Load configuration if it exists
         self.config = self._load_config()

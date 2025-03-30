@@ -17,7 +17,8 @@ from datetime import datetime
 # Add project root to path
 sys.path.append("/Users/yessine/Oblivion")
 
-from src.core.utils.logging_framework import get_logger
+# Import the logger instance and get_logger function
+from src.core.utils.logging_framework import get_logger, neuromorphic_logger # Import the instance
 from src.core.hardware.config_manager import HardwareConfigManager
 
 logger = get_logger("system_monitor")
@@ -165,26 +166,50 @@ class SystemMonitor:
     
     def _check_for_issues(self) -> List[str]:
         """Check for potential issues."""
-        issues = []
+        issues: List[str] = []
         
-        # Check system metrics
-        system = self.metrics["system"]
-        if system.get("cpu_percent", 0) > 90:
-            issues.append("High CPU usage (>90%)")
+        try:
+            # Check system metrics
+            system = self.metrics.get("system", {})
+            if not isinstance(system, dict):
+                logger.warning("System metrics not available or invalid format")
+                system = {}
+                
+            if system.get("cpu_percent", 0) > 90:
+                issues.append("High CPU usage (>90%)")
+            
+            if system.get("memory_percent", 0) > 90:
+                issues.append("High memory usage (>90%)")
+            
+            if system.get("disk_percent", 0) > 90:
+                issues.append("Low disk space (<10% free)")
+            
+            # Check hardware metrics
+            hardware = self.metrics.get("hardware", {})
+            if not isinstance(hardware, dict):
+                logger.warning("Hardware metrics not available or invalid format")
+                hardware = {}
+                
+            if hardware.get("temperature", 0) > 80:
+                issues.append(f"High hardware temperature: {hardware.get('temperature')}°C")
+            
+            if hardware.get("error_count", 0) > 0:
+                issues.append(f"Hardware errors detected: {hardware.get('error_count')}")
+            
+            # Check for network connectivity issues
+            network = self.metrics.get("network", {})
+            if isinstance(network, dict) and network.get("packet_loss", 0) > 5:
+                issues.append(f"Network packet loss detected: {network.get('packet_loss')}%")
+                
+            # Check for process-specific issues
+            processes = self.metrics.get("processes", [])
+            for process in processes:
+                if isinstance(process, dict) and process.get("cpu_percent", 0) > 80:
+                    issues.append(f"High CPU usage by process {process.get('name', 'unknown')}: {process.get('cpu_percent')}%")
         
-        if system.get("memory_percent", 0) > 90:
-            issues.append("High memory usage (>90%)")
-        
-        if system.get("disk_percent", 0) > 90:
-            issues.append("Low disk space (<10% free)")
-        
-        # Check hardware metrics
-        hardware = self.metrics["hardware"]
-        if hardware.get("temperature", 0) > 80:
-            issues.append(f"High hardware temperature: {hardware.get('temperature')}°C")
-        
-        if hardware.get("error_count", 0) > 0:
-            issues.append(f"Hardware errors detected: {hardware.get('error_count')}")
+        except Exception as e:
+            logger.error(f"Error checking for issues: {str(e)}")
+            issues.append(f"Monitoring error: {str(e)}")
         
         return issues
     
@@ -277,15 +302,24 @@ class SystemMonitor:
 def main():
     """Main entry point for system monitor."""
     import argparse
-    
+    import logging # Import standard logging to access level constants
+
     parser = argparse.ArgumentParser(description="Neuromorphic System Monitor")
     parser.add_argument("--interval", type=float, default=5.0, help="Monitoring interval in seconds")
     parser.add_argument("--log-dir", default="/Users/yessine/Oblivion/logs/monitoring", help="Log directory")
+    # Add log level argument
+    parser.add_argument("--log-level", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], help="Set the logging level")
     parser.add_argument("--report", action="store_true", help="Generate diagnostic report")
     parser.add_argument("--monitor", action="store_true", help="Start monitoring")
-    
+
     args = parser.parse_args()
-    
+
+    # Configure the global logging level using the custom framework instance
+    log_level = getattr(logging, args.log_level.upper(), logging.INFO)
+    neuromorphic_logger.set_global_level(log_level) # Call the method on the instance
+    logger.info(f"Set global logging level to: {args.log_level.upper()}")
+
+
     # Create system monitor
     monitor = SystemMonitor(
         monitor_interval=args.interval,
@@ -314,13 +348,14 @@ def main():
     if not args.report and not args.monitor:
         # Show health by default
         health = monitor.get_system_health()
+        logger.debug(f"System health details: {health}") # Example debug log
         print(f"System Health: {health['overall_health']:.1f}%")
-        
+
         if health["issues"]:
             print("\nDetected Issues:")
             for issue in health["issues"]:
                 print(f"- {issue}")
 
-
+# Example usage if run directly
 if __name__ == "__main__":
     main()

@@ -4,10 +4,16 @@ Manufacturing integration for payload systems.
 Provides interfaces for integrating payload designs with manufacturing processes.
 """
 
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 import json
-import os
 import time
 
 from src.payload.base import PayloadSpecs

@@ -1,14 +1,25 @@
+#!/usr/bin/env python3
 """
 Training Configuration Tool
 
 Command-line utility for managing training configurations.
 """
 
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 import os
 import sys
 import argparse
 import json
 from typing import Dict, Any, Optional
+
+# Add project root to path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
 from src.core.training.config_system import create_config_system, TrainingConfigSystem
 from src.core.training.trainer_base import TrainingMode

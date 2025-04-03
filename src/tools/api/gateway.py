@@ -1,8 +1,16 @@
+#!/usr/bin/env python3
 """
 Simple API Gateway for Subsystem Communication
 
 Provides a lightweight gateway for communication between different subsystems.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 import os
 import sys

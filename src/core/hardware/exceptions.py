@@ -1,6 +1,14 @@
+#!/usr/bin/env python3
 """
 Hardware-related exceptions for the neuromorphic SDK.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 class NeuromorphicHardwareError(Exception):
     """Base exception for all neuromorphic hardware errors."""

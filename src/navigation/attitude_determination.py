@@ -5,6 +5,13 @@ Provides advanced algorithms for determining spacecraft attitude
 using star tracker measurements and sensor fusion techniques.
 """
 
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 import numpy as np
 import logging
 from typing import Dict, List, Tuple, Optional, Any

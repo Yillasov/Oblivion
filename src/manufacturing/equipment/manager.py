@@ -1,8 +1,15 @@
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from typing import Dict, Any, Optional
-from .base import ManufacturingEquipment
-from .cnc_controller import CNCController
-from .printer_controller import ThreeDPrinterController
-from .laser_controller import LaserCutterController
+from src.manufacturing.equipment.base import ManufacturingEquipment
+from src.manufacturing.equipment.cnc_controller import CNCController
+from src.manufacturing.equipment.printer_controller import ThreeDPrinterController
+from src.manufacturing.equipment.laser_controller import LaserCutterController
 
 class EquipmentManager:
     """Manager for manufacturing equipment."""

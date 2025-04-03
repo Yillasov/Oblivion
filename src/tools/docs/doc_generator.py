@@ -1,8 +1,16 @@
+#!/usr/bin/env python3
 """
 Simple Documentation Generator
 
 Extracts documentation from Python code and generates HTML or Markdown documentation.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 import os
 import sys
@@ -14,7 +22,7 @@ import argparse
 from typing import Dict, List, Any, Optional, Tuple
 
 # Add project root to path
-sys.path.append("/Users/yessine/Oblivion")
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
 from src.core.utils.logging_framework import get_logger
 
@@ -415,7 +423,7 @@ def main():
     parser = argparse.ArgumentParser(description="Simple Documentation Generator")
     parser.add_argument("--output-dir", default="/Users/yessine/Oblivion/docs", help="Output directory")
     parser.add_argument("--format", choices=["markdown", "html"], default="markdown", help="Output format")
-    parser.add_argument("modules", nargs="+", help="Modules to document")
+    parser.add_argument("modules", nargs="*", default=["/Users/yessine/Oblivion/src"], help="Modules to document")
     
     args = parser.parse_args()
     

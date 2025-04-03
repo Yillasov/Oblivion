@@ -1,11 +1,25 @@
+#!/usr/bin/env python3
 """
 Advanced material modeling for hypersonic UCAV applications.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+import sys
+import os
+# Add the project root to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from typing import Dict, Any, List, Optional, Tuple
 from enum import Enum
 import numpy as np
 from dataclasses import dataclass
+# Change back to absolute import
 from src.airframe.materials import Material, MaterialProperty
 
 class HypersonicProperty(Enum):

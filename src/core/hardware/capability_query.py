@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Hardware Capability Query System
 
@@ -5,9 +6,17 @@ Provides a simple interface to query hardware capabilities across different
 neuromorphic hardware platforms.
 """
 
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from typing import Dict, List, Any, Optional, Set, Union
 import operator
 from functools import reduce
+
 
 from src.core.utils.logging_framework import get_logger
 from src.core.hardware.hardware_registry import hardware_registry

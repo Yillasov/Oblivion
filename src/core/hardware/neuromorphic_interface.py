@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Neuromorphic Hardware Abstraction Interface
 
@@ -5,6 +6,13 @@ This module defines the base interfaces for interacting with neuromorphic hardwa
 in a hardware-agnostic manner, allowing the SDK to support multiple neuromorphic
 processor architectures.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional, Tuple

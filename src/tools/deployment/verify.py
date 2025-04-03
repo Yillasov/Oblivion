@@ -1,8 +1,16 @@
+#!/usr/bin/env python3
 """
 Hardware Verification Tool
 
 Simple tool to verify neuromorphic hardware deployments.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 import os
 import sys
@@ -16,9 +24,37 @@ sys.path.append("/Users/yessine/Oblivion")
 
 from src.core.utils.logging_framework import get_logger
 from src.core.testing.hil_framework import HILTestCase, HILTestSuite
-from src.core.integration.neuromorphic_system import NeuromorphicSystem
+from src.core.integration.neuromorphic_system import NeuromorphicSystem, NeuromorphicInterface
+from src.core.hardware.unified_interface import create_hardware_interface
 
 logger = get_logger("hardware_verification")
+
+
+class HardwareInterfaceAdapter(NeuromorphicInterface):
+    """Adapter class to make NeuromorphicHardwareInterface compatible with NeuromorphicInterface protocol."""
+    
+    def __init__(self, hardware_interface):
+        """Initialize the adapter with a hardware interface."""
+        self.hardware_interface = hardware_interface
+    
+    def initialize(self) -> bool:
+        """Initialize the hardware interface."""
+        # Assuming the hardware_interface has an initialize method that takes no arguments
+        # or can be called with default arguments
+        return self.hardware_interface.initialize({}) if self.hardware_interface else True
+    
+    def cleanup(self) -> None:
+        """Clean up hardware resources."""
+        # Implement cleanup functionality or delegate to hardware_interface if available
+        if hasattr(self.hardware_interface, 'cleanup'):
+            self.hardware_interface.cleanup()
+    
+    def get_info(self) -> Dict[str, Any]:
+        """Get hardware information."""
+        # Implement get_info functionality or delegate to hardware_interface if available
+        if hasattr(self.hardware_interface, 'get_hardware_info'):
+            return self.hardware_interface.get_hardware_info()
+        return {"type": "adapter", "status": "active"}
 
 
 class HardwareVerifier:
@@ -119,12 +155,14 @@ class HardwareVerifier:
         logger.info("Checking connectivity to hardware")
         
         try:
-            # Create proper hardware interface from address
-            from src.core.hardware.interface import create_hardware_interface
+            # Use the already imported create_hardware_interface function
             hardware_interface = create_hardware_interface(self.hardware_address) if self.hardware_address else None
             
-            # Create neuromorphic system with proper interface
-            hardware = NeuromorphicSystem(hardware_interface=hardware_interface)
+            # Wrap the hardware interface with our adapter
+            adapter = HardwareInterfaceAdapter(hardware_interface)
+            
+            # Create neuromorphic system with the adapter
+            hardware = NeuromorphicSystem(adapter)
             
             # Try to initialize and test connection
             connection_success = hardware.initialize()

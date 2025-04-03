@@ -5,11 +5,24 @@ Hardware Diagnostic Tool
 Simple command-line tool for running hardware diagnostics.
 """
 
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+#!/usr/bin/env python3
+
+
 import os
 import sys
 import argparse
 import json
 from datetime import datetime
+
+# Add project root to path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
 from src.core.utils.logging_framework import get_logger
 from src.core.hardware.diagnostics import run_diagnostics, generate_report

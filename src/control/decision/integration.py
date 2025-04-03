@@ -1,11 +1,29 @@
+#!/usr/bin/env python3
+"""
+Integration between decision-making and adaptive control systems.
+"""
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+import sys
+import os
+# Add the project root to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+
 from typing import Dict, Any, Optional
 import numpy as np
 
 from src.control.adaptive.integration import AdaptiveNeuromorphicControl
-from .realtime import DecisionMakingSystem, Decision
+# Change relative import to absolute import
+from src.control.decision.realtime import DecisionMakingSystem, Decision
 
 class DecisionControlIntegration:
-    """Integration between decision-making and adaptive control systems."""
+    
     
     def __init__(self, 
                 adaptive_control: AdaptiveNeuromorphicControl,

@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Bio-mimetic sensor implementation inspired by natural sensing systems.
 
 This module provides a bio-mimetic sensor implementation that mimics
 natural sensing systems like bat echolocation, insect vision, or snake infrared sensing.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from typing import Dict, Any, List, Optional, Tuple
 import numpy as np

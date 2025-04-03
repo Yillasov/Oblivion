@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Communication Error Detection and Correction
 
 Provides mechanisms for detecting and correcting errors in data transfers
 between neuromorphic hardware platforms.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from typing import Dict, Any, List, Optional, Union, Tuple, Callable
 import hashlib

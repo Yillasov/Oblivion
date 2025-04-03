@@ -1,14 +1,24 @@
+#!/usr/bin/env python3
 """
-Material properties database for Radar-Absorbent Materials (RAM).
+Database of Radar Absorbent Materials (RAM).
 """
 
-from typing import Dict, Any, List, Optional, Tuple, Union
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 import json
 import os
-from dataclasses import dataclass, asdict, field
-import numpy as np
+from typing import Dict, List, Optional, Any
+from dataclasses import asdict
 
-from src.stealth.materials.ram.ram_system import RAMMaterial
+from src.stealth.materials.ram.ram_material import RAMMaterial
+from src.core.utils.logging_framework import get_logger
+
+logger = get_logger("ram_database")
 
 
 class RAMMaterialDatabase:

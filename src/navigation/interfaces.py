@@ -5,6 +5,13 @@ This module provides interfaces for connecting navigation systems
 with other UCAV subsystems.
 """
 
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 import logging
 from typing import Dict, List, Any, Optional, Protocol, Tuple
 from dataclasses import dataclass

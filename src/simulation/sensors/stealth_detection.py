@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Stealth Detection Module
 
 Extends the sensor framework to interact with stealth systems and detect
 various signatures (radar, IR, acoustic, electromagnetic).
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 import numpy as np
 from typing import Dict, List, Tuple, Optional, Any, Union

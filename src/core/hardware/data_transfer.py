@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Efficient Data Transfer Mechanisms
 
 Provides optimized methods for transferring data between neuromorphic hardware platforms
 and between host and hardware.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from typing import Dict, Any, List, Optional, Union, BinaryIO
 import numpy as np

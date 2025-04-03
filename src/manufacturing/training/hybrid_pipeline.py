@@ -1,8 +1,16 @@
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from enum import Enum
 from typing import Dict, Any, List, Optional
 import numpy as np
 
-from .specialized_pipeline import SpecializedTrainingPipeline, TrainingDomain
+# Change from relative to absolute import
+from src.manufacturing.training.specialized_pipeline import SpecializedTrainingPipeline, TrainingDomain
 from src.core.utils.logging_framework import get_logger
 
 logger = get_logger("hybrid_training")

@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Neuromorphic Computing Primitives
 
 This module provides fundamental building blocks for neuromorphic computing,
 including neuron models, synaptic plasticity rules, and network structures.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 import numpy as np
 from typing import Dict, List, Any, Callable, Tuple, Optional

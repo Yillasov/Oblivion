@@ -1,8 +1,16 @@
+#!/usr/bin/env python3
 """
 Complex Flight Scenario
 
 A more complex flight scenario with sensor simulation and aerodynamics.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from src.core.utils.logging_framework import get_logger
 from src.simulation.core.scheduler import SimulationScheduler, TaskConfig

@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Hardware Compatibility Layer
 
 Provides a consistent API for interacting with different neuromorphic hardware platforms,
 abstracting away hardware-specific details and ensuring code portability.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from typing import Dict, List, Any, Optional, Tuple, Union
 import logging
@@ -378,16 +386,24 @@ class HardwareCompatibilityLayer:
     @hardware_operation("supports_feature")
     def supports_feature(self, feature_name: str) -> bool:
         """
-        Check if hardware supports a specific feature.
+        Check if the current hardware supports a specific feature.
         
         Args:
-            feature_name: Feature name to check
+            feature_name: Name of the feature to check
             
         Returns:
-            bool: True if feature is supported
+            bool: True if the feature is supported, False otherwise
         """
-        capabilities = self.get_capabilities()
-        return feature_name in capabilities and capabilities[feature_name]
+        # Get hardware info
+        hardware_info = self.get_hardware_info()
+        
+        # Check if capabilities exist in hardware info
+        if "capabilities" not in hardware_info:
+            logger.warning(f"No capabilities information available for {self.hardware_type}")
+            return False
+        
+        # Check if the feature exists in capabilities
+        return hardware_info["capabilities"].get(feature_name, False)
     
     @hardware_operation("get_optimization_recommendations")
     def get_optimization_recommendations(self) -> List[str]:

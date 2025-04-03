@@ -3,9 +3,14 @@ Genetic algorithms for optimizing targeting strategies.
 Enhances accuracy and efficiency in UCAV targeting systems.
 """
 
+import sys
+import os
+# Add the project root to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 import numpy as np
 import random
-from typing import Dict, List, Tuple, Any  # Add Any to the import statement
+from typing import Dict, List, Tuple, Any, Optional
 import logging
 
 logger = logging.getLogger(__name__)
@@ -43,8 +48,11 @@ class GeneticTargetingOptimizer:
     
     def _select_parents(self, population: List[Dict[str, float]], fitness_scores: List[float]) -> Tuple[Dict[str, float], Dict[str, float]]:
         """Select two parents based on fitness scores using roulette wheel selection."""
-        total_fitness = sum(fitness_scores)
-        selection_probs = [fitness / total_fitness for fitness in fitness_scores]
+        # Get only the fitness scores for the elite population
+        elite_fitness = [fitness_scores[i] for i in range(len(population))]
+        
+        total_fitness = sum(elite_fitness)
+        selection_probs = [fitness / total_fitness for fitness in elite_fitness]
         
         parent1 = random.choices(population, weights=selection_probs, k=1)[0]
         parent2 = random.choices(population, weights=selection_probs, k=1)[0]
@@ -88,7 +96,9 @@ class GeneticTargetingOptimizer:
             # Create new population through crossover and mutation
             new_population = elite.copy()
             while len(new_population) < self.population_size:
-                parent1, parent2 = self._select_parents(elite, fitness_scores)
+                # Pass only the elite population and their corresponding fitness scores
+                elite_fitness = [fitness_scores[i] for i in elite_idx]
+                parent1, parent2 = self._select_parents(elite, elite_fitness)
                 child = self._crossover(parent1, parent2)
                 child = self._mutate(child)
                 new_population.append(child)

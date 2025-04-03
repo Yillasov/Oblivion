@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Synthetic Aperture Radar implementation for high-resolution imaging.
 
 This module provides a SAR implementation that uses platform motion to create
 a synthetic aperture for high-resolution imaging through clouds, smoke, and foliage.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from typing import Dict, Any, List, Optional, Tuple
 import numpy as np

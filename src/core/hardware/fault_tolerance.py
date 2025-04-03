@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Fault Tolerance Manager for Neuromorphic Hardware
 
 Provides fault detection, redundancy management, and graceful degradation
 for critical neuromorphic components.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 import time
 import threading

@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Resource Sharing Manager for Multi-Process Neuromorphic Applications
 
 Provides advanced resource sharing mechanisms for neuromorphic hardware
 when multiple processes need to access the same resources.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from typing import Dict, List, Any, Optional, Set, Tuple
 import threading

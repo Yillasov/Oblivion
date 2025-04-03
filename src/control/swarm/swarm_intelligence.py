@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Simple Swarm Intelligence Framework
 
@@ -5,9 +6,21 @@ Implements basic swarm behaviors and collective intelligence algorithms
 inspired by natural systems like bird flocks, fish schools, and insect colonies.
 """
 
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+import sys
+import os
+# Add the project root to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+
 import numpy as np
 from typing import List, Dict, Tuple, Optional, Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import time
 
 from src.core.utils.logging_framework import get_logger
@@ -28,7 +41,7 @@ class SwarmAgent:
     # Agent state and capabilities
     energy: float = 100.0        # Energy level
     role: str = "worker"         # Role in swarm
-    data: Dict = {}             # Custom data storage
+    data: Dict = field(default_factory=dict)  # Custom data storage
     
     def __post_init__(self):
         """Initialize after creation."""

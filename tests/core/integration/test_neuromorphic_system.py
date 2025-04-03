@@ -1,12 +1,29 @@
+#!/usr/bin/env python3
+"""
+Test cases for the NeuromorphicSystem class.
+"""
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 import unittest
+import os
+import sys
 from unittest.mock import MagicMock, patch
 import numpy as np
 from typing import Dict, Any
 
+# Add project root to path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
+
 from src.core.integration.neuromorphic_system import NeuromorphicSystem
 
 class TestNeuromorphicSystem(unittest.TestCase):
-    """Test cases for the NeuromorphicSystem class."""
+    
     
     def setUp(self):
         """Set up test fixtures."""

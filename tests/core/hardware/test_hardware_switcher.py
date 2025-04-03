@@ -1,10 +1,23 @@
+#!/usr/bin/env python3
 """
 Test hardware switching functionality between neuromorphic platforms.
 """
 
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 import unittest
+import os
+import sys
 from unittest.mock import MagicMock, patch
 from typing import Dict, Any, Optional
+
+# Add project root to path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 
 from src.core.hardware.hardware_switcher import HardwareSwitcher
 from src.core.hardware.compatibility_layer import HardwareCompatibilityLayer

@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Hardware Health Monitoring System
 
 Provides real-time monitoring of neuromorphic hardware health metrics
 and alerts for potential issues.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 import time
 import threading

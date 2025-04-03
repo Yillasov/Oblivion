@@ -4,11 +4,17 @@ Hardware-in-the-Loop Testing for UCAV Prototypes
 Extends the prototype testing framework with HIL capabilities.
 """
 
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 import time
 import threading
 from typing import Dict, List, Any, Optional, Tuple, Callable
 import numpy as np
-import os
 import json
 
 from src.core.utils.logging_framework import get_logger

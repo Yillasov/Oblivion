@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Neuromorphic Hardware Abstraction Layer
 
 Provides a unified interface for interacting with different 
 neuromorphic hardware platforms, abstracting away hardware-specific details.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from typing import Dict, List, Any, Optional, Tuple, Callable, ContextManager
 import logging

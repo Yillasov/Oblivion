@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Distributed Aperture System implementation for 360-degree situational awareness.
 
 This module provides a distributed aperture system that uses multiple sensors
 positioned around the platform to provide complete spherical coverage.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from typing import Dict, Any, List, Optional, Tuple
 import numpy as np

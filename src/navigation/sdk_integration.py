@@ -5,6 +5,13 @@ Provides integration between navigation systems and the SDK
 for cross-system communication and resource sharing.
 """
 
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 import logging
 import time
 from typing import Dict, List, Any, Optional, Tuple, Callable

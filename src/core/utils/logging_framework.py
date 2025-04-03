@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Error Handling and Logging Framework
 
 This module provides a unified approach to error handling and logging
 for the neuromorphic SDK.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 import logging
 import os

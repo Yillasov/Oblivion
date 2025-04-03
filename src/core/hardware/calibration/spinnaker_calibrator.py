@@ -1,3 +1,15 @@
+#!/usr/bin/env python3
+"""
+SpiNNaker-specific hardware calibration.
+"""
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from datetime import datetime
 from typing import Dict, Any
 from .base import HardwareCalibrator, CalibrationResult
@@ -5,7 +17,7 @@ from ..sensors.spinnaker_sensors import SpiNNakerSensorInterface
 from ..sensors.base import SensorReading
 
 class SpiNNakerCalibrator(HardwareCalibrator):
-    """SpiNNaker-specific hardware calibration."""
+    
     
     def __init__(self):
         super().__init__()

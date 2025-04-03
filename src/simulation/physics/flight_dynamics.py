@@ -4,6 +4,13 @@ Enhanced Flight Dynamics Physics Engine
 A lightweight physics engine for UCAV flight dynamics simulation with improved accuracy.
 """
 
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 import numpy as np
 from typing import Dict, Tuple, List, Any, Optional
 from dataclasses import dataclass

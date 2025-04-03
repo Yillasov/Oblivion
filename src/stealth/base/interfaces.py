@@ -4,7 +4,7 @@ Core interfaces for stealth systems in the Oblivion SDK.
 
 from abc import ABC, abstractmethod
 from typing import Dict, Any, List, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field  # Added import for field
 from enum import Enum, auto
 
 
@@ -28,25 +28,19 @@ class StealthType(Enum):
 @dataclass
 class StealthSpecs:
     """Specifications for stealth systems."""
-    # Basic specifications
+    
     stealth_type: StealthType
-    weight: float  # Weight in kg
-    power_requirements: float  # Power requirements in kW
-    
-    # Performance metrics
-    radar_cross_section: float  # RCS in square meters
-    infrared_signature: float  # IR signature in arbitrary units
-    acoustic_signature: float  # Acoustic signature in dB
-    
-    # Operational parameters
-    activation_time: float  # Time to activate in seconds
-    operational_duration: float  # Operational duration in minutes
-    cooldown_period: float  # Cooldown period in minutes
-    
-    # Additional specifications
-    material_composition: Dict[str, float] = {}  # Material composition percentages
-    frequency_ranges: List[Dict[str, float]] = []  # Effective frequency ranges
-    environmental_constraints: Dict[str, Any] = {}  # Environmental constraints
+    weight: float  # kg
+    power_requirements: float  # kW
+    radar_cross_section: float  # relative to baseline (1.0 = no reduction)
+    infrared_signature: float  # relative to baseline (1.0 = no reduction)
+    acoustic_signature: float  # relative to baseline (1.0 = no reduction)
+    activation_time: float  # seconds
+    operational_duration: float  # minutes
+    cooldown_period: float  # minutes
+    material_composition: Dict[str, float] = field(default_factory=dict)  # Fixed: using default_factory instead of mutable default
+    frequency_ranges: List[Dict[str, float]] = field(default_factory=list)  # Also fixed this mutable default
+    environmental_constraints: Dict[str, Any] = field(default_factory=dict)  # And this one too
 
 
 class StealthInterface(ABC):
@@ -197,3 +191,71 @@ class NeuromorphicStealth(StealthInterface):
         
         # Implement training logic here
         return True
+
+
+#!/usr/bin/env python3
+"""
+Interface definitions for stealth systems in the Oblivion SDK.
+"""
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+from enum import Enum, auto
+from typing import Dict, Any, Optional
+from abc import ABC, abstractmethod
+
+class StealthType(Enum):
+    """Types of stealth systems."""
+    RADAR_ABSORBENT_MATERIAL = auto()
+    PLASMA_STEALTH = auto()
+    ACTIVE_CAMOUFLAGE = auto()
+    METAMATERIAL_CLOAKING = auto()
+    INFRARED_SUPPRESSION = auto()
+    ACOUSTIC_REDUCTION = auto()
+    ELECTROMAGNETIC_SHIELDING = auto()
+    SHAPE_SHIFTING = auto()
+    THERMAL_CAMOUFLAGE = auto()
+    LOW_OBSERVABLE_NOZZLE = auto()
+
+class StealthSystem(ABC):
+    """Base interface for all stealth systems."""
+    
+    @abstractmethod
+    def initialize(self) -> bool:
+        """Initialize the stealth system."""
+        pass
+    
+    @abstractmethod
+    def activate(self) -> bool:
+        """Activate the stealth system."""
+        pass
+    
+    @abstractmethod
+    def deactivate(self) -> bool:
+        """Deactivate the stealth system."""
+        pass
+    
+    @abstractmethod
+    def get_status(self) -> Dict[str, Any]:
+        """Get current status of the stealth system."""
+        pass
+    
+    @abstractmethod
+    def update_configuration(self, config: Dict[str, Any]) -> bool:
+        """Update the stealth system configuration."""
+        pass
+    
+    @abstractmethod
+    def get_effectiveness(self) -> Dict[str, float]:
+        """Get current effectiveness metrics."""
+        pass
+    
+    @abstractmethod
+    def perform_self_test(self) -> Dict[str, Any]:
+        """Perform self-test and return results."""
+        pass

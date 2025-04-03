@@ -5,6 +5,13 @@ Provides support for simulating extreme flight conditions and edge cases
 in the Oblivion simulation framework.
 """
 
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from enum import Enum, auto
 from dataclasses import dataclass
 from typing import Dict, List, Any, Optional, Callable

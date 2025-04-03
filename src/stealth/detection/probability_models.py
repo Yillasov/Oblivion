@@ -1,8 +1,21 @@
+#!/usr/bin/env python3
 """
 Stealth Detection Probability Models
 
 Simple models for calculating detection probabilities of stealth systems.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+import sys
+import os
+# Add the project root to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
 from enum import Enum
 from typing import Dict, Any, Optional, Tuple, List

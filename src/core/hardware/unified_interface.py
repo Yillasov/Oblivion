@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Unified Hardware Interface
 
 Provides a standardized interface for interacting with different neuromorphic 
 hardware platforms (Loihi, SpiNNaker, and TrueNorth).
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from typing import Dict, List, Any, Optional, Tuple
 from abc import ABC, abstractmethod

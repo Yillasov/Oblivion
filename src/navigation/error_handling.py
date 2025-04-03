@@ -5,6 +5,13 @@ This module provides specialized error handling and uncertainty quantification
 for navigation systems in UCAV platforms.
 """
 
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 import logging
 import numpy as np
 from typing import Dict, Any, Optional, List, Callable, Type, Tuple

@@ -1,8 +1,21 @@
+#!/usr/bin/env python3
 """
 Stealth Effectiveness Module
 
 Evaluates the effectiveness of stealth systems against different sensor types.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+import sys
+import os
+# Add project root to Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
 from enum import Enum
 from typing import Dict, Any, List, Optional, Tuple, Union

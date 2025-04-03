@@ -1,3 +1,15 @@
+#!/usr/bin/env python3
+"""
+Base class for hardware-specific calibration.
+"""
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional
 from dataclasses import dataclass
@@ -12,7 +24,7 @@ class CalibrationResult:
     notes: Optional[str] = None
 
 class HardwareCalibrator(ABC):
-    """Base class for hardware-specific calibration."""
+    
     
     def __init__(self):
         self.last_calibration: Optional[CalibrationResult] = None

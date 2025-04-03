@@ -1,9 +1,22 @@
+#!/usr/bin/env python3
 """
 Hybrid Adaptive Flight Controller
 
 Implementation of a hybrid adaptive control system combining direct and indirect
 adaptation with sliding mode control for robust flight performance.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+import sys
+import os
+# Add the project root to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
 import numpy as np
 from typing import List, Tuple, Optional

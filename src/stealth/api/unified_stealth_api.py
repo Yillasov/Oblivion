@@ -1,13 +1,29 @@
+#!/usr/bin/env python3
+"""
+Unified API for accessing stealth capabilities across the system.
+"""
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+import sys
+import os
+# Add the project root to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+
 from typing import Dict, List, Any, Optional, Union, cast
 from enum import Enum
 
-from ..base.interfaces import StealthInterface
-from ..base.config import StealthSystemConfig, StealthType
-from ..design.parametric_design import ParametricStealthDesigner, CADIntegration
-from ..effectiveness.stealth_effectiveness import StealthEffectivenessEvaluator
-# Fix the import by creating a proper path
-from ..neuromorphic.neuromorphic_integration import NeuromorphicIntegration
-# Add import for EquipmentManager
+# Change relative imports to absolute imports
+from src.stealth.base.interfaces import StealthInterface
+from src.stealth.base.config import StealthSystemConfig, StealthType
+from src.stealth.design.parametric_design import ParametricStealthDesigner, CADIntegration
+from src.stealth.effectiveness.stealth_effectiveness import StealthEffectivenessEvaluator
+from src.stealth.neuromorphic.neuromorphic_integration import NeuromorphicIntegration
 from src.manufacturing.equipment.manager import EquipmentManager
 
 

@@ -1,3 +1,15 @@
+#!/usr/bin/env python3
+"""
+Base interface for hardware sensors.
+"""
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from abc import ABC, abstractmethod
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
@@ -12,7 +24,7 @@ class SensorReading:
     status: str = "ok"
 
 class SensorInterface(ABC):
-    """Base interface for hardware sensors."""
+    
     
     def __init__(self):
         self.sensors: Dict[str, Dict[str, Any]] = {}

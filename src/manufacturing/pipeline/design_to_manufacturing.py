@@ -2,6 +2,13 @@
 Neuromorphic-enabled design-to-manufacturing pipeline for UCAV production.
 """
 
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from typing import Dict, Any
 from src.core.integration.neuromorphic_system import NeuromorphicSystem
 from src.manufacturing.workflow.production_automator import ProductionAutomator

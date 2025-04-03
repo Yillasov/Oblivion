@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Workload-Specific Hardware Optimizer
 
 Provides optimization strategies tailored to specific workload types
 across different neuromorphic hardware platforms.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from typing import Dict, Any, List, Optional, Tuple
 from enum import Enum

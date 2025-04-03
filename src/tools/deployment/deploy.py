@@ -1,8 +1,16 @@
+#!/usr/bin/env python3
 """
 Simple Deployment Tool for Neuromorphic Hardware
 
 Provides utilities for deploying algorithms and configurations to target hardware.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 import os
 import sys

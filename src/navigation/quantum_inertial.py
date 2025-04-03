@@ -5,6 +5,13 @@ This module provides a specialized navigation system that leverages
 quantum effects to achieve higher precision inertial navigation.
 """
 
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 import logging
 import numpy as np
 from typing import Dict, Any, Optional, List

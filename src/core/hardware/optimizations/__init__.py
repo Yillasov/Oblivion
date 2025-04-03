@@ -1,8 +1,16 @@
+#!/usr/bin/env python3
 """
 Hardware-specific optimization modules.
 
 Provides optimizations tailored to different neuromorphic hardware platforms.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from src.core.hardware.optimizations.base import HardwareOptimizer, OptimizationRegistry
 # Import hardware-specific optimizers to register them

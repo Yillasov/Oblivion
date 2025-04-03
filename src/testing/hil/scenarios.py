@@ -1,13 +1,30 @@
+#!/usr/bin/env python3
+"""
+Runner for HIL test scenarios.
+"""
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+import sys
+import os
+# Add the project root to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+
 from typing import Dict, Any, List
 import numpy as np
 import json
-import os
 
 from src.simulation.physics.environment import EnvironmentModel
-from .framework import HILTestFramework
+# Change the relative import to an absolute import
+from src.testing.hil.framework import HILTestFramework
 
 class TestScenarioRunner:
-    """Runner for HIL test scenarios."""
+    
     
     def __init__(self, hil_framework: HILTestFramework, scenarios_dir: str):
         self.hil_framework = hil_framework

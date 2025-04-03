@@ -1,8 +1,22 @@
+#!/usr/bin/env python3
 """
 Automated validation tool for neuromorphic hardware compatibility.
 """
 
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+import os
+import sys
 from typing import Dict, Tuple, Any
+
+# Add project root to path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+
 from src.core.integration.neuromorphic_system import NeuromorphicSystem
 from src.core.hardware.hardware_capabilities import HardwareCapabilitiesDiscovery
 from src.core.utils.logging_framework import get_logger

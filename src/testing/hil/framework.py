@@ -1,15 +1,32 @@
+#!/usr/bin/env python3
+"""
+Base interface for hardware components in HIL testing.
+"""
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+import sys
+import os
+# Add the project root to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+
 from typing import Dict, Any, List, Optional, Callable, Union
 import numpy as np
 import threading
 import time
 import queue
-import os  # Add this import for the os module
 
 from src.simulation.physics.simulation_runner import SimulationRunner
+from src.core.integration.neuromorphic_system import NeuromorphicSystem
 from src.hardware.neuromorphic.integration import HardwareSNNIntegration
 
 class HardwareInterface:
-    """Base interface for hardware components in HIL testing."""
+    
     
     def __init__(self, config: Dict[str, Any]):
         self.config = config

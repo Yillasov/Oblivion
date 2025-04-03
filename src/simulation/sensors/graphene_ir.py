@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Graphene-based infrared sensor implementation for ultra-sensitive thermal detection.
 
 This module provides a graphene-based infrared sensor implementation that offers
 superior sensitivity and response time compared to conventional IR sensors.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from typing import Dict, Any, List, Optional, Tuple
 import numpy as np

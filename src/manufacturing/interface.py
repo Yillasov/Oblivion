@@ -1,3 +1,19 @@
+#!/usr/bin/env python3
+"""
+Protocol defining the interface for manufacturing pipelines.
+    
+    This protocol specifies the required methods that any manufacturing
+    pipeline implementation must provide to be compatible with the
+    manufacturing interface.
+"""
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from typing import Dict, Any, Optional, List, Tuple, Protocol, Callable, Type, ClassVar
 import os
 import logging
@@ -9,13 +25,7 @@ logger = get_logger("manufacturing")
 
 # Define protocols for dependency injection
 class ManufacturingPipeline(Protocol):
-    """
-    Protocol defining the interface for manufacturing pipelines.
     
-    This protocol specifies the required methods that any manufacturing
-    pipeline implementation must provide to be compatible with the
-    manufacturing interface.
-    """
     
     def process_design(self, design_data: Dict[str, Any]) -> Dict[str, Any]:
         """

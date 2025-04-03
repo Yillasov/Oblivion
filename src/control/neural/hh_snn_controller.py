@@ -1,8 +1,21 @@
+#!/usr/bin/env python3
 """
 Hodgkin-Huxley Spiking Neural Network Controller
 
 A detailed biophysical SNN implementation using Hodgkin-Huxley neuron model.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+import sys
+import os
+# Add the project root to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
 import numpy as np
 from typing import Dict, List, Tuple, Optional

@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Multi-spectral EO/IR camera implementation for advanced target detection.
 
 This module provides a multi-spectral camera implementation that can detect targets
 across multiple bands from visible to far infrared simultaneously.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from typing import Dict, Any, List, Optional, Tuple
 import numpy as np

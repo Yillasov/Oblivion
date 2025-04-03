@@ -5,6 +5,13 @@ This module implements advanced solid-state battery functionality,
 including high-density energy storage, thermal management, and lifecycle optimization.
 """
 
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from typing import Dict, Any, List, Optional, Tuple, Set
 from enum import Enum, auto
 import time

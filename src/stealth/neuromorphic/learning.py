@@ -1,9 +1,22 @@
+#!/usr/bin/env python3
 """
 Learning capabilities for stealth effectiveness.
 
 This module provides learning algorithms that enable stealth systems
 to improve their effectiveness over time based on experience.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+import sys
+import os
+# Add the project root to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
 from typing import Dict, Any, List, Optional, Tuple
 import numpy as np

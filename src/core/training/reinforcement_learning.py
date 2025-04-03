@@ -1,8 +1,16 @@
+#!/usr/bin/env python3
 """
 Reinforcement Learning Component for Simulation Training
 
 Implements a simplified reward-based learning rule for use with the simulation training framework.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 import numpy as np
 from typing import Dict, List, Tuple, Any, Optional

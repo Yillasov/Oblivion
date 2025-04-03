@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Real-time stealth optimization algorithms.
 
 This module provides optimization algorithms for stealth systems
 to adapt to changing threat environments in real-time.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from typing import Dict, Any, List, Optional
 import time

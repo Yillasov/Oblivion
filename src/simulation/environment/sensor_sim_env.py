@@ -5,13 +5,19 @@ Provides a controlled environment for testing and validating sensor algorithms
 with simulated data.
 """
 
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 import numpy as np
 from typing import Dict, List, Tuple, Optional, Any, Callable
 from dataclasses import dataclass
 from enum import Enum
 import time
 import logging
-import os
 import json
 
 from src.simulation.sensors.sensor_framework import SensorManager, SensorType, SensorConfig, Sensor

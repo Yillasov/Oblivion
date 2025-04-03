@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Intel Loihi Neuromorphic Processor Driver
 
 This module provides an implementation of the NeuromorphicProcessor interface
 for Intel's Loihi neuromorphic research chip.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from typing import Dict, List, Any, Tuple, Optional
 import numpy as np

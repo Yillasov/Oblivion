@@ -6,10 +6,24 @@ Simple command-line interface for hardware health monitoring.
 """
 
 import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+#!/usr/bin/env python3
+
+
+import sys
 import time
 import json
 import argparse
+import os
 from typing import Dict, Any
+
+# Add project root to path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
 from src.core.utils.logging_framework import get_logger
 from src.core.hardware.health_monitor import (

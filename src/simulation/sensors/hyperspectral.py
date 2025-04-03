@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Hyperspectral Imaging implementation for advanced target detection and analysis.
 
 This module provides a hyperspectral imaging implementation that can detect and
 analyze targets across hundreds of spectral bands simultaneously.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from typing import Dict, Any, List, Optional, Tuple
 import numpy as np

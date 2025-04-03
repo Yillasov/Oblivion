@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Neuromorphic Hardware Optimizer
 
 Applies real-time adaptive optimization to neuromorphic hardware
 based on performance metrics.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from typing import Dict, Any, List, Optional
 import time

@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Advanced sensor implementations for UCAV platforms.
 
 This module provides base classes for advanced sensor technologies including
 quantum, neuromorphic, and bio-mimetic sensing paradigms.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from typing import Dict, Any, List, Optional, Tuple
 import numpy as np

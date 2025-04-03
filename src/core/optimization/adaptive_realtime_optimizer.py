@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
 """
 Real-time Adaptive Optimization System
 
 Provides a framework for adapting hardware and system configurations
 based on real-time performance metrics.
 """
+
+import sys
+import os
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from typing import Dict, Any, List, Tuple, Optional, Callable
 import numpy as np

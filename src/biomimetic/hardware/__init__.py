@@ -1,0 +1,3 @@
+"""
+Biomimetic hardware package.
+"""

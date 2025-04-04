@@ -15,7 +15,7 @@ if project_root not in sys.path:
 import numpy as np
 from typing import Dict, Tuple, List, Any, Optional
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from src.core.utils.logging_framework import get_logger
 from src.simulation.aerodynamics.cfd_engine import CFDEngine
@@ -41,6 +41,10 @@ class UCAVGeometry:
     has_vertical_tail: bool = False
     has_canards: bool = False
     
+    # Morphing capabilities
+    has_morphing_surfaces: bool = False
+    morphing_config: Dict[str, Any] = field(default_factory=dict)
+    
     def __post_init__(self):
         """Compute derived parameters."""
         # Mean aerodynamic chord
@@ -49,6 +53,45 @@ class UCAVGeometry:
         # Aspect ratio validation
         if self.aspect_ratio <= 0:
             self.aspect_ratio = (self.wingspan ** 2) / self.wing_area
+            
+        # Initialize default morphing configuration if needed
+        if self.has_morphing_surfaces and not self.morphing_config:
+            self.morphing_config = {
+                "wing_twist": 0.0,  # degrees
+                "camber_morphing": 0.0,  # 0-1 scale
+                "span_extension": 0.0,  # % of wingspan
+                "sweep_morphing": 0.0,  # degrees
+                "wingtip_morphing": 0.0,  # 0-1 scale
+                "flexible_skin": {
+                    "elasticity": 0.5,  # 0-1 scale
+                    "thickness_variation": 0.0  # mm
+                }
+            }
+
+
+@dataclass
+class FlexibleSurfaceProperties:
+    """Properties of flexible/morphing surfaces."""
+    
+    # Material properties
+    youngs_modulus: float  # MPa
+    poisson_ratio: float
+    density: float  # kg/m³
+    thickness: float  # mm
+    
+    # Actuation properties
+    max_deformation: float  # mm
+    response_time: float  # seconds
+    energy_consumption: float  # W/cm²
+    
+    # Aerodynamic effects
+    drag_reduction: float  # % reduction at optimal configuration
+    lift_enhancement: float  # % enhancement at optimal configuration
+    
+    # Operational limits
+    max_speed: float  # m/s
+    max_temperature: float  # °C
+    fatigue_cycles: int  # estimated cycles before replacement
 
 
 class UCAVAerodynamicsModel:
@@ -76,6 +119,25 @@ class UCAVAerodynamicsModel:
         
         # Initialize CFD engine for detailed simulations
         self.cfd = None
+        
+        # Flexible surface properties (if applicable)
+        self.flexible_properties = None
+        if geometry.has_morphing_surfaces:
+            self.flexible_properties = FlexibleSurfaceProperties(
+                youngs_modulus=200.0,  # MPa (typical for composite materials)
+                poisson_ratio=0.3,
+                density=1600.0,  # kg/m³
+                thickness=0.5,  # mm
+                max_deformation=50.0,  # mm
+                response_time=0.5,  # seconds
+                energy_consumption=0.2,  # W/cm²
+                drag_reduction=8.0,  # %
+                lift_enhancement=12.0,  # %
+                max_speed=300.0,  # m/s
+                max_temperature=120.0,  # °C
+                fatigue_cycles=100000
+            )
+            logger.info("Initialized with flexible/morphing surface capabilities")
         
         logger.info(f"UCAV aerodynamics model initialized with wingspan {geometry.wingspan}m")
     
@@ -123,6 +185,19 @@ class UCAVAerodynamicsModel:
         root_chord = 2 * mean_chord / (1 + taper_ratio)
         tip_chord = root_chord * taper_ratio
         
+        # Apply morphing effects if enabled
+        if self.geometry.has_morphing_surfaces:
+            # Apply span extension
+            span_extension = self.geometry.morphing_config.get("span_extension", 0.0)
+            wingspan *= (1.0 + span_extension / 100.0)
+            
+            # Apply sweep morphing
+            sweep_morphing = self.geometry.morphing_config.get("sweep_morphing", 0.0)
+            sweep_angle += sweep_morphing
+            
+            # Apply camber morphing (will affect airfoil shape)
+            camber_morphing = self.geometry.morphing_config.get("camber_morphing", 0.0)
+        
         # Create wing geometry
         wing = {
             'type': 'swept_wing',
@@ -133,6 +208,23 @@ class UCAVAerodynamicsModel:
             'sweep_angle': sweep_angle,
             'airfoil': 'NACA64A010'  # Default airfoil for UCAV
         }
+        
+        # Add flexible surface properties if applicable
+        if self.geometry.has_morphing_surfaces:
+            wing['flexible_surface'] = {
+                'enabled': True,
+                'properties': {
+                    'thickness': self.flexible_properties.thickness,
+                    'youngs_modulus': self.flexible_properties.youngs_modulus,
+                    'poisson_ratio': self.flexible_properties.poisson_ratio,
+                    'max_deformation': self.flexible_properties.max_deformation
+                },
+                'morphing_state': {
+                    'wing_twist': self.geometry.morphing_config.get("wing_twist", 0.0),
+                    'camber_morphing': self.geometry.morphing_config.get("camber_morphing", 0.0),
+                    'wingtip_morphing': self.geometry.morphing_config.get("wingtip_morphing", 0.0)
+                }
+            }
         
         # Create fuselage geometry
         fuselage = {
@@ -208,11 +300,35 @@ class UCAVAerodynamicsModel:
         # Total drag
         cd = self.cd0 + cdi + cdw
         
+        # Apply morphing surface effects if enabled
+        if self.geometry.has_morphing_surfaces:
+            # Get morphing configuration
+            camber = self.geometry.morphing_config.get("camber_morphing", 0.0)
+            wing_twist = self.geometry.morphing_config.get("wing_twist", 0.0)
+            wingtip = self.geometry.morphing_config.get("wingtip_morphing", 0.0)
+            
+            # Adjust lift coefficient based on camber morphing
+            cl_morph = cl * (1.0 + camber * self.flexible_properties.lift_enhancement / 100.0)
+            
+            # Adjust drag coefficient based on morphing
+            # More complex model would use CFD for accurate results
+            cd_reduction = (camber + wingtip) * self.flexible_properties.drag_reduction / 200.0
+            cd_morph = cd * (1.0 - cd_reduction)
+            
+            # Update coefficients
+            cl = cl_morph
+            cd = cd_morph
+            
+            # Wing twist affects pitching moment and roll moment
+            cm_twist = 0.02 * wing_twist / 5.0  # Simplified effect
+        else:
+            cm_twist = 0.0
+        
         # Side force coefficient (simplified)
         cy = -0.5 * beta_rad
         
         # Pitching moment
-        cm = self.cm0 + self.cm_alpha * alpha_rad
+        cm = self.cm0 + self.cm_alpha * alpha_rad + cm_twist
         
         # Rolling moment (simplified)
         cl_roll = -0.1 * beta_rad
@@ -270,6 +386,90 @@ class UCAVAerodynamicsModel:
         
         return forces
     
+    def set_morphing_configuration(self, config: Dict[str, Any]) -> None:
+        """
+        Set the morphing surface configuration.
+        
+        Args:
+            config: Dictionary with morphing parameters
+        """
+        if not self.geometry.has_morphing_surfaces:
+            logger.warning("Morphing surfaces not enabled for this UCAV")
+            return
+            
+        # Update morphing configuration
+        for key, value in config.items():
+            if key in self.geometry.morphing_config:
+                self.geometry.morphing_config[key] = value
+            elif key == "flexible_skin" and isinstance(value, dict):
+                for skin_key, skin_value in value.items():
+                    if skin_key in self.geometry.morphing_config.get("flexible_skin", {}):
+                        self.geometry.morphing_config["flexible_skin"][skin_key] = skin_value
+        
+        logger.info(f"Updated morphing configuration: {config}")
+    
+    def optimize_morphing(self, flight_condition: Dict[str, float]) -> Dict[str, Any]:
+        """
+        Optimize morphing configuration for given flight conditions.
+        
+        Args:
+            flight_condition: Dictionary with flight parameters
+                (velocity, altitude, alpha, beta)
+                
+        Returns:
+            Dict[str, Any]: Optimized morphing configuration
+        """
+        if not self.geometry.has_morphing_surfaces:
+            logger.warning("Morphing surfaces not enabled for this UCAV")
+            return {}
+            
+        # Extract flight conditions
+        velocity = flight_condition.get("velocity", 100.0)
+        altitude = flight_condition.get("altitude", 5000.0)
+        alpha = flight_condition.get("alpha", 2.0)
+        beta = flight_condition.get("beta", 0.0)
+        
+        # Calculate Mach number
+        temperature = 288.15 - 0.0065 * altitude
+        speed_of_sound = np.sqrt(1.4 * 287 * temperature)
+        mach = velocity / speed_of_sound
+        
+        # Simple optimization strategy based on flight regime
+        # In a real implementation, this would use more sophisticated algorithms
+        
+        # High speed - reduce drag
+        if mach > 0.7:
+            optimal_config = {
+                "wing_twist": 1.0,
+                "camber_morphing": 0.2,
+                "span_extension": 0.0,
+                "sweep_morphing": 5.0,  # Increase sweep for high speed
+                "wingtip_morphing": 0.8  # Reduce vortex drag
+            }
+        # Low speed, high alpha - maximize lift
+        elif alpha > 5.0:
+            optimal_config = {
+                "wing_twist": 2.0,
+                "camber_morphing": 0.8,  # Increase camber for lift
+                "span_extension": 5.0,  # Extend span for efficiency
+                "sweep_morphing": -2.0,  # Reduce sweep for better low-speed performance
+                "wingtip_morphing": 0.5
+            }
+        # Cruise - balance efficiency
+        else:
+            optimal_config = {
+                "wing_twist": 0.5,
+                "camber_morphing": 0.4,
+                "span_extension": 2.0,
+                "sweep_morphing": 0.0,
+                "wingtip_morphing": 0.6
+            }
+        
+        # Apply the optimized configuration
+        self.set_morphing_configuration(optimal_config)
+        
+        return optimal_config
+    
     def run_cfd_simulation(self, steps: int = 100) -> Dict[str, Any]:
         """
         Run CFD simulation for more detailed aerodynamic analysis.
@@ -312,10 +512,22 @@ class UCAVAerodynamicsModel:
         # Get flow field data
         flow_field = self.cfd.get_flow_field()
         
+        # Additional analysis for flexible surfaces
+        flexible_analysis = {}
+        if self.geometry.has_morphing_surfaces:
+            # In a real implementation, this would analyze surface deformation
+            # and fluid-structure interaction
+            flexible_analysis = {
+                "max_deformation": 2.5,  # mm
+                "surface_pressure_distribution": "uniform",  # simplified
+                "energy_consumption": 0.15 * self.geometry.wing_area  # W
+            }
+        
         return {
             'forces': forces,
             'flow_field': flow_field,
-            'simulation_time': self.cfd.time
+            'simulation_time': self.cfd.time,
+            'flexible_surface_analysis': flexible_analysis
         }
 
 
@@ -336,6 +548,41 @@ def create_default_ucav_model() -> UCAVAerodynamicsModel:
         sweep_angle=35.0,      # degrees
         has_vertical_tail=False,
         has_canards=False
+    )
+    
+    # Create and return model
+    return UCAVAerodynamicsModel(geometry)
+
+
+def create_morphing_ucav_model() -> UCAVAerodynamicsModel:
+    """
+    Create a UCAV aerodynamics model with morphing capabilities.
+    
+    Returns:
+        UCAVAerodynamicsModel: UCAV model with morphing surfaces
+    """
+    # Create geometry for a morphing UCAV
+    geometry = UCAVGeometry(
+        length=10.8,           # meters
+        wingspan=16.5,         # meters
+        wing_area=45.0,        # square meters
+        aspect_ratio=6.05,     # wingspan^2 / area
+        taper_ratio=0.25,      # tip chord / root chord
+        sweep_angle=30.0,      # degrees
+        has_vertical_tail=False,
+        has_canards=True,
+        has_morphing_surfaces=True,
+        morphing_config={
+            "wing_twist": 0.0,  # degrees
+            "camber_morphing": 0.0,  # 0-1 scale
+            "span_extension": 0.0,  # % of wingspan
+            "sweep_morphing": 0.0,  # degrees
+            "wingtip_morphing": 0.0,  # 0-1 scale
+            "flexible_skin": {
+                "elasticity": 0.7,  # 0-1 scale
+                "thickness_variation": 0.2  # mm
+            }
+        }
     )
     
     # Create and return model
